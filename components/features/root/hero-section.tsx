@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Zap } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { PixelTrail } from "@/components/ui/pixel-trail"
-import { useScreenSize } from "@/hooks/use-screen-size"
-import { JoinMailingList } from "./join-mailing-list"
-import { PartnerTicker } from "./partner-ticker"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { PixelTrail } from "@/components/ui/pixel-trail";
+import { useScreenSize } from "@/hooks/use-screen-size";
+import { JoinMailingList } from "./join-mailing-list";
+import { PartnerTicker } from "./partner-ticker";
 
 export function HeroSection() {
-  const screenSize = useScreenSize()
+  const screenSize = useScreenSize();
 
   return (
     <section className="w-full flex flex-col items-center justify-center relative min-h-screen overflow-hidden">
@@ -65,5 +65,5 @@ export function HeroSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

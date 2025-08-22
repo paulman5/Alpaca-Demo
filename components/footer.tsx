@@ -1,18 +1,18 @@
-"use client"
-import React, { useEffect, useRef, useState } from "react"
-import Link from "next/link"
-import { ArrowUp } from "lucide-react"
-import Image from "next/image"
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowUp } from "lucide-react";
+import Image from "next/image";
 interface LinkItem {
-  href: string
-  label: string
+  href: string;
+  label: string;
 }
 
 interface FooterProps {
-  leftLinks: LinkItem[]
-  rightLinks: LinkItem[]
-  copyrightText: string
-  barCount?: number
+  leftLinks: LinkItem[];
+  rightLinks: LinkItem[];
+  copyrightText: string;
+  barCount?: number;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -20,68 +20,68 @@ export const Footer: React.FC<FooterProps> = ({
   rightLinks,
   copyrightText,
 }) => {
-  const waveRefs = useRef<(HTMLDivElement | null)[]>([])
-  const footerRef = useRef<HTMLDivElement | null>(null)
-  const [isVisible, setIsVisible] = useState(false)
-  const animationFrameRef = useRef<number | null>(null)
+  const waveRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const footerRef = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        const [entry] = entries
-        setIsVisible(entry.isIntersecting)
+        const [entry] = entries;
+        setIsVisible(entry.isIntersecting);
       },
-      { threshold: 0.2 }
-    )
+      { threshold: 0.2 },
+    );
 
-    const currentFooterRef = footerRef.current
+    const currentFooterRef = footerRef.current;
     if (currentFooterRef) {
-      observer.observe(currentFooterRef)
+      observer.observe(currentFooterRef);
     }
 
     return () => {
       if (currentFooterRef) {
-        observer.unobserve(currentFooterRef)
+        observer.unobserve(currentFooterRef);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
-    let t = 0
+    let t = 0;
 
     const animateWave = () => {
-      const waveElements = waveRefs.current
-      let offset = 0
+      const waveElements = waveRefs.current;
+      let offset = 0;
 
       waveElements.forEach((element, index) => {
         if (element) {
-          offset += Math.max(0, 20 * Math.sin((t + index) * 0.3))
-          element.style.transform = `translateY(${index + offset}px)`
+          offset += Math.max(0, 20 * Math.sin((t + index) * 0.3));
+          element.style.transform = `translateY(${index + offset}px)`;
         }
-      })
+      });
 
-      t += 0.1
-      animationFrameRef.current = requestAnimationFrame(animateWave)
-    }
+      t += 0.1;
+      animationFrameRef.current = requestAnimationFrame(animateWave);
+    };
 
     if (isVisible) {
-      animateWave()
+      animateWave();
     } else if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
-      animationFrameRef.current = null
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
 
     return () => {
       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-        animationFrameRef.current = null
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
-    }
-  }, [isVisible])
+    };
+  }, [isVisible]);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <footer
@@ -199,8 +199,8 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
 // Default footer component with Spout Finance links
 const DefaultFooter = () => {
@@ -209,7 +209,7 @@ const DefaultFooter = () => {
     { href: "/app/portfolio", label: "Portfolio" },
     { href: "/app/trade", label: "Trading" },
     // { href: "/app/earn", label: "Earn" },
-  ]
+  ];
 
   const rightLinks = [
     { href: "/company", label: "Company" },
@@ -224,7 +224,7 @@ const DefaultFooter = () => {
     // { href: "/careers", label: "Careers" },
     // { href: "/blog", label: "Blog" },
     // { href: "/security", label: "Security" },
-  ]
+  ];
 
   return (
     <Footer
@@ -233,7 +233,7 @@ const DefaultFooter = () => {
       copyrightText={`© ${new Date().getFullYear()} Spout Finance. All rights reserved.`}
       barCount={25}
     />
-  )
-}
+  );
+};
 
-export default DefaultFooter
+export default DefaultFooter;
