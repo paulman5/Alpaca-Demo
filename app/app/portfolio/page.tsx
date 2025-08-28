@@ -39,7 +39,6 @@ function PortfolioPage() {
     hasMore,
     loadMore,
   } = useRecentActivity(userAddress);
-
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
     return num.toLocaleString(undefined, {
