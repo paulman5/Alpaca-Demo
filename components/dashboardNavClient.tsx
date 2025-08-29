@@ -7,6 +7,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -161,16 +162,21 @@ export function DashboardNavbarHeaderClient() {
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
-      <Link
-        href="/app"
-        className={`ml-4 text-sm cursor-pointer ${
-          isActive("/app")
-            ? "text-gray-900 font-medium"
-            : "text-gray-600 hover:text-gray-900"
-        }`}
-      >
-        Dashboard
-      </Link>
+      <div className="flex items-center gap-2">
+        <div className="md:hidden">
+          <SidebarTrigger />
+        </div>
+        <Link
+          href="/app"
+          className={`ml-2 text-sm cursor-pointer ${
+            isActive("/app")
+              ? "text-gray-900 font-medium"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Dashboard
+        </Link>
+      </div>
     </header>
   );
 }
