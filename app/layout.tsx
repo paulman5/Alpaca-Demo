@@ -6,6 +6,7 @@ import { Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 import { ConditionalNavbar } from "@/components/conditionalNavbar";
+import { Analytics } from "@vercel/analytics/next";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -77,6 +78,7 @@ export default async function RootLayout({
           <ConditionalNavbar />
           <main className="flex-1">{children}</main>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );

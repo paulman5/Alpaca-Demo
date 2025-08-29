@@ -200,19 +200,19 @@ export function useRecentActivity(userAddress?: string) {
       try {
         console.log("🔍 Starting block number fetch...");
         const currentBlock = await publicClient.getBlockNumber();
-        console.log(`✅ Current block: ${currentBlock}`);
+        // console.log(`✅ Current block: ${currentBlock}`);
 
-        console.log(`🔍 Debugging Recent Activity:`);
-        console.log(`Current block: ${currentBlock}`);
-        console.log(`Contract address: ${rwaTokenAddress}`);
-        console.log(`Filtering for user address: ${userAddress}`);
-        console.log(`Token decimals: ${decimals}`);
-        console.log(`Chain ID: ${chainId}`);
+        // console.log(`🔍 Debugging Recent Activity:`);
+        // console.log(`Current block: ${currentBlock}`);
+        // console.log(`Contract address: ${rwaTokenAddress}`);
+        // console.log(`Filtering for user address: ${userAddress}`);
+        // console.log(`Token decimals: ${decimals}`);
+        // console.log(`Chain ID: ${chainId}`);
 
         // Verify contract exists
         try {
           console.log("🔍 Checking if contract exists...");
-          const contractCode = await publicClient.getBytecode({
+          const contractCode = await publicClient.getCode({
             address: rwaTokenAddress,
           });
           console.log(`📋 Contract exists: ${contractCode ? "YES" : "NO"}`);

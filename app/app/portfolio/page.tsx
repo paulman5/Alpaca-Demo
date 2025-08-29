@@ -78,7 +78,6 @@ function PortfolioPage() {
 
   // Function to refresh portfolio data
   const handleRefresh = () => {
-    console.log("🔄 Refreshing portfolio balances...");
     window.location.reload();
   };
 

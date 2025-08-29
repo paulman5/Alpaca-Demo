@@ -127,8 +127,6 @@ export default function KYCFlow() {
     }
   }, [isDeployed, refetchOnchainID]);
 
-  console.log("identityAddress", onchainIDAddress);
-
   // Console log wallet address when it changes
   useEffect(() => {
     if (address) {
@@ -142,8 +140,6 @@ export default function KYCFlow() {
       typeof onchainIDAddress === "string" &&
       onchainIDAddress !== "0x0000000000000000000000000000000000000000",
   );
-
-  console.log("hasclaimaddedtohim", hasKYCClaim);
 
   const steps = [
     {
@@ -284,7 +280,6 @@ export default function KYCFlow() {
         console.error("Error parsing success response:", parseError);
         throw new Error("Invalid response format from server");
       }
-      console.log("KYC signature response:", data);
       setKycSignature(data);
       setCurrentStep(3);
     } catch (err) {
@@ -314,21 +309,21 @@ export default function KYCFlow() {
     });
   };
 
-  console.log("kycsignature address", kycSignature?.issuerAddress);
-  console.log("issuerAddress", issuerAddress);
+  // console.log("kycsignature address", kycSignature?.issuerAddress);
+  // console.log("issuerAddress", issuerAddress);
 
-  // Add comprehensive debugging logs
-  console.log("🔍 KYC Debug Information:");
-  console.log("Current chain ID:", useChainId());
-  console.log("Expected issuer address:", issuerAddress);
-  console.log("KYC signature issuer address:", kycSignature?.issuerAddress);
-  console.log("OnchainID address:", onchainIDAddress);
-  console.log("Has KYC claim:", hasKYCClaim);
-  console.log("Is claim added:", isClaimAdded);
-  console.log("Current step:", currentStep);
-  console.log("Has existing identity:", hasExistingIdentity);
-  console.log("Is identity verified:", isIdentityVerified);
-  console.log("Is checking verification:", isCheckingVerification);
+  // // Add comprehensive debugging logs
+  // console.log("🔍 KYC Debug Information:");
+  // console.log("Current chain ID:", useChainId());
+  // console.log("Expected issuer address:", issuerAddress);
+  // console.log("KYC signature issuer address:", kycSignature?.issuerAddress);
+  // console.log("OnchainID address:", onchainIDAddress);
+  // console.log("Has KYC claim:", hasKYCClaim);
+  // console.log("Is claim added:", isClaimAdded);
+  // console.log("Current step:", currentStep);
+  // console.log("Has existing identity:", hasExistingIdentity);
+  // console.log("Is identity verified:", isIdentityVerified);
+  // console.log("Is checking verification:", isCheckingVerification);
 
   // Update current step based on state
   useEffect(() => {

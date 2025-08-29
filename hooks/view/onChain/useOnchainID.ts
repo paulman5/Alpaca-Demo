@@ -117,9 +117,9 @@ export function useOnchainID({
       abiCoder.encode(["address", "uint256"], [issuer as `0x${string}`, topic]),
     ) as `0x${string}`;
     // Log only when all values are present
-    console.log("issuer address", issuer);
-    console.log("topic", topic);
-    console.log("claimId", claimId);
+    // console.log("issuer address", issuer);
+    // console.log("topic", topic);
+    // console.log("claimId", claimId);
   }
 
   // Only read claim if onchainID and claimId are present
@@ -156,11 +156,11 @@ export function useOnchainID({
     const isNotZeroAddress =
       claimIssuer !== "0x0000000000000000000000000000000000000000";
 
-    console.log("Claim issuer:", claimIssuer);
-    console.log("Claim topic:", claimTopic);
-    console.log("Issuer match:", isIssuerMatch);
-    console.log("Topic match:", isTopicMatch);
-    console.log("Not zero address:", isNotZeroAddress);
+    // console.log("Claim issuer:", claimIssuer);
+    // console.log("Claim topic:", claimTopic);
+    // console.log("Issuer match:", isIssuerMatch);
+    // console.log("Topic match:", isTopicMatch);
+    // console.log("Not zero address:", isNotZeroAddress);
 
     hasKYCClaim = isIssuerMatch && isTopicMatch && isNotZeroAddress;
     console.log("Final hasKYCClaim:", hasKYCClaim);

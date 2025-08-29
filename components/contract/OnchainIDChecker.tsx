@@ -157,7 +157,6 @@ export default function OnchainIDChecker() {
       Number(usdcBalance) <= 0 &&
       String(pathname) === "/app/trade"
     ) {
-      console.log("[USDC Sonner Debug] ✅ Conditions met, showing USDC Sonner");
       toast.warning(
         "You need USDC to start trading. Claim your testnet USDC to begin.",
         {
@@ -219,9 +218,6 @@ export default function OnchainIDChecker() {
 
     // FIRST: Check if KYC is completed - if so, dismiss toast and return early
     if (hasEverHadOnchainID === true) {
-      console.log(
-        "[KYC Sonner Debug] ✅ User has ever had onchain ID, dismissing KYC toast",
-      );
       toast.dismiss("kyc-toast");
       setHasShownKYCToast(false); // Reset the flag when KYC is completed
       return;
@@ -233,7 +229,6 @@ export default function OnchainIDChecker() {
       !(pathname === "/app/profile" && searchParams?.get("tab") === "kyc") &&
       !hasShownKYCToast
     ) {
-      console.log("[KYC Sonner Debug] ✅ Conditions met, showing KYC Sonner");
       setHasShownKYCToast(true); // Mark that we've shown the toast
       toast.warning(
         "Complete KYC and create your onchainIdentity to buy Spout tokens",

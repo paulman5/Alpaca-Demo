@@ -87,7 +87,6 @@ const TradePage = () => {
         }));
 
         // Refetch balances to show updated amounts
-        console.log("🔄 Refetching balances after successful transaction...");
         refetchTokenBalance();
         refetchUSDCBalance();
 
@@ -167,7 +166,6 @@ const TradePage = () => {
           if (lastKnownPrice !== json.price) {
             setCurrentPrice(json.price);
             lastKnownPrice = json.price;
-            console.log("💰 Price updated:", json.price);
           }
         } else {
           setCurrentPrice(null); // No valid price data
@@ -245,17 +243,6 @@ const TradePage = () => {
       Math.floor(usdcAmountNum * Math.pow(10, USDC_DECIMALS)),
     );
 
-    console.log("🔍 Buy Order Debug:");
-    console.log("Input buyUsdc:", buyUsdc);
-    console.log("Parsed number:", usdcAmountNum);
-    console.log("USDC decimals:", USDC_DECIMALS);
-    console.log("Multiplier:", Math.pow(10, USDC_DECIMALS));
-    console.log(
-      "Calculated amount:",
-      usdcAmountNum * Math.pow(10, USDC_DECIMALS),
-    );
-    console.log("Final BigInt amount:", amount.toString());
-
     const estimatedTokenAmount =
       latestPrice > 0 ? usdcAmountNum / latestPrice : 0;
 
@@ -271,13 +258,11 @@ const TradePage = () => {
 
     try {
       // Step 1: Approve USDC
-      console.log("🔄 Starting USDC approval...");
       const approveTx = await approve(ordersAddress, amount);
       await waitForTransactionReceipt(config, { hash: approveTx });
       console.log("✅ USDC approval completed");
 
       // Step 2: Execute buy transaction
-      console.log("🔄 Starting buy transaction...");
       console.log("📤 Sending USDC amount to contract:", amount.toString());
       buyAsset(BigInt(2000002), selectedToken, rwaTokenAddress, amount);
       setBuyUsdc("");
@@ -332,15 +317,6 @@ const TradePage = () => {
     // Multiply by 18 decimals for token amount
     const tokenAmount = BigInt(Math.floor(sellTokenAmount * 1e18));
 
-    console.log("🔍 Sell Order Debug:");
-    console.log("Input sellToken:", sellToken);
-    console.log("Parsed number:", sellTokenAmount);
-    console.log("Available balance:", tokenBalance);
-    console.log("Token decimals: 18");
-    console.log("Multiplier: 1e18");
-    console.log("Calculated amount:", sellTokenAmount * 1e18);
-    console.log("Final BigInt amount:", tokenAmount.toString());
-
     const estimatedUsdcAmount =
       latestPrice > 0 ? sellTokenAmount * latestPrice : 0;
 
@@ -356,7 +332,6 @@ const TradePage = () => {
 
     try {
       // Execute sell transaction
-      console.log("🔄 Starting sell transaction...");
       sellAsset(BigInt(2000002), selectedToken, rwaTokenAddress, tokenAmount);
       setSellToken("");
 

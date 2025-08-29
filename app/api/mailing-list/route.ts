@@ -86,7 +86,9 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          values: [[email, new Date().toUTCString().split(" ").slice(1, 5).join(" ")]],
+          values: [
+            [email, new Date().toUTCString().split(" ").slice(1, 5).join(" ")],
+          ],
         }),
       },
     );
