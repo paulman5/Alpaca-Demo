@@ -23,6 +23,7 @@ export function useOrdersContract() {
       abi: ordersABI,
       functionName: "buyAsset",
       args: [adfsFeedId, ticker, token, usdcAmount],
+      gas: BigInt(400000),
     });
   }
 
@@ -38,6 +39,7 @@ export function useOrdersContract() {
       abi: ordersABI,
       functionName: "sellAsset",
       args: [adfsFeedId, ticker, token, tokenAmount],
+      gas: BigInt(400000),
     });
   }
 
