@@ -6,6 +6,7 @@ import { WagmiProvider, http } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { baseSepolia } from "wagmi/chains";
 import { AuthProvider } from "@/context/AuthContext";
+import { NetworkProvider } from "@/context/NetworkContext";
 import { pharos } from "@/lib/chainconfigs/pharos";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
@@ -50,8 +51,10 @@ const Providers = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <RainbowKitProvider>
         <AuthProvider>
-          <WalletConnectionPrompt />
-          {children}
+          <NetworkProvider>
+            <WalletConnectionPrompt />
+            {children}
+          </NetworkProvider>
         </AuthProvider>
       </RainbowKitProvider>
     </QueryClientProvider>

@@ -40,6 +40,7 @@ import { countryCodes } from "@/lib/utils";
 import { useOnchainID } from "@/hooks/view/onChain/useOnchainID";
 import { useAddClaim } from "@/hooks/writes/onChain/useAddClaim";
 import { useIdentityVerification } from "@/hooks/view/onChain/useIdentityVerification";
+import { useNetwork } from "@/context/NetworkContext";
 interface KYCSignatureResponse {
   signature: {
     r: string;
@@ -53,6 +54,7 @@ interface KYCSignatureResponse {
 
 export default function KYCFlow() {
   const { address, isConnected } = useAccount();
+  const { checkAndSwitchNetwork, isPharos } = useNetwork();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedCountry, setSelectedCountry] = useState<number>(91);
   const [onchainIDAddressCurrent, setOnchainIDAddressCurrent] =
@@ -107,7 +109,7 @@ export default function KYCFlow() {
     refetch: refetchVerification,
   } = useIdentityVerification(address);
 
-  // Sync local state with hook value
+  // Sync local state with hook value and handle network switching
   useEffect(() => {
     if (typeof onchainIDAddress === "string") {
       setOnchainIDAddressCurrent(onchainIDAddress);
@@ -133,6 +135,16 @@ export default function KYCFlow() {
       console.log("Wallet address:", address);
     }
   }, [address]);
+
+  // Automatically switch to Pharos when wallet connects with better error handling
+  useEffect(() => {
+    if (isConnected) {
+      checkAndSwitchNetwork().catch((error: Error) => {
+        console.error("Failed to switch network in KYC flow:", error);
+        setError("Failed to switch to Pharos network. Please try switching manually.");
+      });
+    }
+  }, [isConnected, checkAndSwitchNetwork]);
 
   // Check if identity exists (avoid unknown type in JSX)
   const hasExistingIdentity = Boolean(
@@ -353,12 +365,7 @@ export default function KYCFlow() {
     }
   }, [isDeployed, onchainIDAddress, hasExistingIdentity]);
 
-  // Update local state from hook when hook's value changes
-  useEffect(() => {
-    if (typeof onchainIDAddress === "string") {
-      setOnchainIDAddressCurrent(onchainIDAddress);
-    }
-  }, [onchainIDAddress]);
+
 
   // Track when claim is successfully added
   useEffect(() => {
@@ -417,6 +424,22 @@ export default function KYCFlow() {
           Complete your verification to access advanced trading features. This
           process creates your onchain identity and verifies your credentials.
         </p>
+        
+        {/* Network Status Indicator */}
+        {isConnected && (
+          <div className="flex justify-center">
+            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              isPharos 
+                ? 'bg-emerald-100 text-emerald-800' 
+                : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              <div className={`w-2 h-2 rounded-full mr-2 ${
+                isPharos ? 'bg-emerald-500' : 'bg-yellow-500'
+              }`} />
+              {isPharos ? 'Connected to Pharos Network' : 'Wrong Network - Switching...'}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Progress Bar */}
@@ -518,7 +541,7 @@ export default function KYCFlow() {
 
                       <Button
                         onClick={handleDeployIdentity}
-                        isDisabled={isDeploying || isConfirming || !isConnected}
+                        isDisabled={isDeploying || isConfirming || !isConnected || !isPharos}
                         className="w-full"
                       >
                         {isDeploying || isConfirming ? (
@@ -528,6 +551,8 @@ export default function KYCFlow() {
                               ? "Deploying Identity..."
                               : "Confirming Transaction..."}
                           </>
+                        ) : !isPharos ? (
+                          "Switch to Pharos Network"
                         ) : (
                           "Deploy Identity"
                         )}
@@ -638,7 +663,7 @@ export default function KYCFlow() {
 
                       <Button
                         onClick={handleKYCSignature}
-                        isDisabled={!address || !onchainIDAddress || isLoading}
+                        isDisabled={!address || !onchainIDAddress || isLoading || !isPharos}
                         className="w-full"
                       >
                         {isLoading ? (
@@ -646,6 +671,8 @@ export default function KYCFlow() {
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Getting KYC Signature...
                           </>
+                        ) : !isPharos ? (
+                          "Switch to Pharos Network"
                         ) : (
                           "Get KYC Signature"
                         )}
@@ -693,7 +720,7 @@ export default function KYCFlow() {
                       <Button
                         onClick={handleAddClaim}
                         isDisabled={
-                          isAddingClaim || isConfirmingClaim || !kycSignature
+                          isAddingClaim || isConfirmingClaim || !kycSignature || !isPharos
                         }
                         className="w-full"
                       >
@@ -704,6 +731,8 @@ export default function KYCFlow() {
                               ? "Adding Verification Claim..."
                               : "Confirming Transaction..."}
                           </>
+                        ) : !isPharos ? (
+                          "Switch to Pharos Network"
                         ) : (
                           "Add Verification Claim"
                         )}

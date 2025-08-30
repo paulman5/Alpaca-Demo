@@ -1,6 +1,6 @@
 import { useAccount, useSwitchChain } from "wagmi";
 import { baseSepolia } from "viem/chains";
-
+import { pharos } from "@/lib/chainconfigs/pharos";
 export const useNetworkSwitch = () => {
   const { chainId } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -10,19 +10,19 @@ export const useNetworkSwitch = () => {
       throw new Error("No chain detected. Please connect your wallet.");
     }
 
-    if (chainId !== baseSepolia.id) {
+    if (chainId !== pharos.id) {
       try {
-        await switchChainAsync({ chainId: baseSepolia.id });
+        await switchChainAsync({ chainId: pharos.id });
       } catch (err) {
         console.error("Error switching network:", err);
-        throw new Error("Failed to switch to Base Sepolia network");
+        throw new Error("Failed to switch to Pharos Testnet network");
       }
     }
   };
 
   return {
     checkAndSwitchNetwork,
-    isBaseSepolia: chainId === baseSepolia.id,
+    isPharos: chainId === pharos.id,
     currentChain: chainId,
   };
 };
