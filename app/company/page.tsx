@@ -29,6 +29,20 @@ const team = [
     bio: "Legal counsel with years of experience in software. Architect of the legal framework for various succesful software products, such as payments and factory automation.",
     linkedin: "https://www.linkedin.com/in/paul-jan-reijn-70b635227/",
   },
+  // {
+  //   name: "Mihir Sahu",
+  //   title: "Co-Founder & Head of Privacy",
+  //   img: "/HeadshotMihir.PNG",
+  //   bio: "Web3 engineer with expertise in privacy, cross-chain systems, and decentralized finance. Experience at Inco building TEE-powered applications for confidential DeFi and payments, and recognized at major hackathon competitions for his work in the web3 privacy space.",
+  //   linkedin: "https://www.linkedin.com/in/0xmihirsahu/",
+  // },
+  // {
+  //   name: "Lovish Badlani",
+  //   title: "Co-Founder & Senior Backend Engineer",
+  //   img: "/HeadshotLovish.jpg",
+  //   bio: "Senior software engineer with experience in backend systems and large-scale infrastructure. He has worked as an engineer at BlackRock and contributed to building software across both startups and enterprises.",
+  //   linkedin: "https://www.linkedin.com/in/lovish-badlani-250a05151/",
+  // }
 ];
 
 export default function AboutPage() {
