@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { cacheHelpers, CACHE_TTL } from "@/lib/cache/server-cache";
+import "@/lib/cache/cache-monitor"; // Auto-start cache monitoring
 
 interface AlpacaQuote {
   t: string;
@@ -17,12 +19,23 @@ interface AlpacaBarsResponse {
   };
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const symbol = searchParams.get("symbol") || "LQD";
+interface MarketDataResponse {
+  symbol: string;
+  price: number | null;
+  askPrice: number | null;
+  bidPrice: number | null;
+  previousClose: number | null;
+  timestamp: string | null;
+  yield: number;
+  fallbackUsed: boolean;
+  dates: {
+    current: string | null;
+    previous: string | null;
+    quote: string | null;
+  };
+}
 
-  console.log("🔍 Requested symbol:", symbol);
-
+async function fetchMarketDataFromAPI(symbol: string): Promise<MarketDataResponse> {
   const options = {
     method: "GET",
     headers: {
@@ -32,93 +45,148 @@ export async function GET(request: Request) {
     },
   };
 
+  // Step 1: Get latest quote for fallback price
+  const latestUrl = `https://data.alpaca.markets/v2/stocks/quotes/latest?symbols=${symbol}`;
+  console.log("📡 Fetching quote from:", latestUrl);
+  const latestRes = await fetch(latestUrl, options);
+  const latestData = (await latestRes.json()) as {
+    quotes: { [symbol: string]: AlpacaQuote };
+  };
+
+  const latestQuote = latestData.quotes?.[symbol];
+  const askPrice = latestQuote?.ap ?? null;
+  const bidPrice = latestQuote?.bp ?? null;
+
+  // Step 2: Get the most recent 10 bars
+  const barsUrl = `https://data.alpaca.markets/v2/stocks/bars?symbols=${symbol}&timeframe=1Day&limit=10`;
+  console.log("📡 Fetching bars from:", barsUrl);
+  const barsRes = await fetch(barsUrl, options);
+  const barsData = (await barsRes.json()) as AlpacaBarsResponse;
+
+  const bars = barsData.bars?.[symbol] ?? [];
+  const sortedBars = bars
+    .filter((b) => typeof b?.c === "number")
+    .sort((a, b) => new Date(b.t).getTime() - new Date(a.t).getTime());
+
+  const currentBar = sortedBars[0] ?? null;
+  const previousBar = sortedBars[1] ?? null;
+
+  // Helper to choose first valid positive number
+  const firstValid = (...vals: Array<number | null | undefined>) =>
+    vals.find((v) => typeof v === "number" && isFinite(v) && v > 0) ?? null;
+
+  // Robust fallbacks
+  const resolvedPrice = firstValid(
+    currentBar?.c,
+    askPrice,
+    bidPrice,
+    previousBar?.c,
+  );
+  const resolvedPreviousClose = firstValid(
+    previousBar?.c,
+    currentBar?.c,
+    bidPrice,
+    askPrice,
+  );
+
+  // Step 3: Get cached yield data or fetch fresh
+  let actualYield = 4.95; // Fallback value
   try {
-    // Step 1: Get latest quote for fallback price
-    const latestUrl = `https://data.alpaca.markets/v2/stocks/quotes/latest?symbols=${symbol}`;
-    console.log("📡 Fetching quote from:", latestUrl);
-    const latestRes = await fetch(latestUrl, options);
-    const latestData = (await latestRes.json()) as {
-      quotes: { [symbol: string]: AlpacaQuote };
-    };
-    console.log("📊 Quote response:", latestData);
-
-    const latestQuote = latestData.quotes?.[symbol];
-    const askPrice = latestQuote?.ap ?? null;
-    const bidPrice = latestQuote?.bp ?? null;
-
-    console.log("💰 Ask/Bid prices:", { askPrice, bidPrice });
-
-    // Step 2: Get the most recent 10 bars
-    const barsUrl = `https://data.alpaca.markets/v2/stocks/bars?symbols=${symbol}&timeframe=1Day&limit=10`;
-    console.log("📡 Fetching bars from:", barsUrl);
-    const barsRes = await fetch(barsUrl, options);
-    const barsData = (await barsRes.json()) as AlpacaBarsResponse;
-    console.log("📊 Bars response:", barsData);
-
-    const bars = barsData.bars?.[symbol] ?? [];
-
-    const sortedBars = bars
-      .filter((b) => typeof b?.c === "number")
-      .sort((a, b) => new Date(b.t).getTime() - new Date(a.t).getTime());
-
-    console.log("✅ Sorted Bars:", sortedBars);
-
-    const currentBar = sortedBars[0] ?? null;
-    const previousBar = sortedBars[1] ?? null;
-
-    // Helper to choose first valid positive number
-    const firstValid = (...vals: Array<number | null | undefined>) =>
-      vals.find((v) => typeof v === "number" && isFinite(v) && v > 0) ?? null;
-
-    // Robust fallbacks
-    const resolvedPrice = firstValid(
-      currentBar?.c,
-      askPrice,
-      bidPrice,
-      previousBar?.c,
-    );
-    const resolvedPreviousClose = firstValid(
-      previousBar?.c,
-      currentBar?.c,
-      bidPrice,
-      askPrice,
-    );
-
-    // Step 3: Fetch actual yield data
-    let actualYield = 4.95; // Fallback value
-    try {
-      const yieldUrl = `${request.headers.get("origin") || "http://localhost:3000"}/api/marketdata/yields?symbol=${symbol}`;
-      console.log("📡 Fetching yield from:", yieldUrl);
-      const yieldRes = await fetch(yieldUrl);
-      if (yieldRes.ok) {
-        const yieldData = await yieldRes.json();
-        actualYield = yieldData.yield || 4.44;
-        console.log("📊 Actual yield from API:", actualYield);
-      } else {
-        console.log("⚠️ Failed to fetch yield, using fallback");
-      }
-    } catch (yieldError) {
-      console.log("⚠️ Error fetching yield, using fallback:", yieldError);
-    }
-
-    const response = {
-      symbol,
-      price: resolvedPrice,
-      askPrice: askPrice,
-      bidPrice: bidPrice,
-      previousClose: resolvedPreviousClose,
-      timestamp: currentBar?.t ?? latestQuote?.t ?? null,
-      yield: actualYield, // Use actual yield from API
-      fallbackUsed: previousBar == null || !resolvedPrice,
-      dates: {
-        current: currentBar?.t ?? null,
-        previous: previousBar?.t ?? null,
-        quote: latestQuote?.t ?? null,
+    const yieldCacheKey = cacheHelpers.yieldDataKey(symbol);
+    const cachedYield = await cacheHelpers.getOrSetMarketData(
+      yieldCacheKey,
+      async () => {
+        // Fetch yield data directly from Alpaca instead of making internal API call
+        const yieldData = await fetchYieldDataFromAlpaca(symbol, options);
+        return yieldData.yield;
       },
-    };
+      CACHE_TTL.YIELD_DATA
+    );
+    actualYield = cachedYield || actualYield;
+    console.log("📊 Yield data (cached or fresh):", actualYield);
+  } catch (yieldError) {
+    console.log("⚠️ Error fetching yield, using fallback:", yieldError);
+  }
 
-    console.log("🎯 Final response:", response);
-    return NextResponse.json(response);
+  return {
+    symbol,
+    price: resolvedPrice,
+    askPrice: askPrice,
+    bidPrice: bidPrice,
+    previousClose: resolvedPreviousClose,
+    timestamp: currentBar?.t ?? latestQuote?.t ?? null,
+    yield: actualYield,
+    fallbackUsed: previousBar == null || !resolvedPrice,
+    dates: {
+      current: currentBar?.t ?? null,
+      previous: previousBar?.t ?? null,
+      quote: latestQuote?.t ?? null,
+    },
+  };
+}
+
+async function fetchYieldDataFromAlpaca(symbol: string, options: any) {
+  // Get current price for yield calculation
+  const priceUrl = `https://data.alpaca.markets/v2/stocks/quotes/latest?symbols=${symbol}`;
+  const priceRes = await fetch(priceUrl, options);
+  const priceData = await priceRes.json();
+  const currentPrice = priceData.quotes?.[symbol]?.ap || 0;
+
+  // Get dividend data from corporate actions
+  const today = new Date();
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+  const dividendUrl = `https://data.alpaca.markets/v1/corporate-actions?symbols=${symbol}&types=cash_dividend&start=${oneYearAgo.toISOString().split("T")[0]}&end=${today.toISOString().split("T")[0]}`;
+  const dividendRes = await fetch(dividendUrl, options);
+  const dividendResponseData = await dividendRes.json();
+
+  const dividendData = dividendResponseData.corporate_actions?.cash_dividends || [];
+
+  let yieldRate = 0;
+  if (Array.isArray(dividendData) && dividendData.length > 0) {
+    const sortedDividends = dividendData
+      .filter((div: any) => div.symbol === symbol)
+      .sort((a: any, b: any) => new Date(b.ex_date).getTime() - new Date(a.ex_date).getTime());
+
+    if (sortedDividends.length > 0) {
+      const uniqueMonths = new Set(
+        sortedDividends.map((div) => div.ex_date.substring(0, 7))
+      ).size;
+
+      const totalDividends = sortedDividends
+        .slice(0, Math.min(uniqueMonths, 12))
+        .reduce((sum, div) => sum + div.rate, 0);
+
+      const averageMonthlyDividend = totalDividends / Math.min(uniqueMonths, 12);
+      yieldRate = currentPrice > 0 ? ((averageMonthlyDividend * 12) / currentPrice) * 100 : 0;
+    }
+  }
+
+  return {
+    symbol,
+    yield: parseFloat(yieldRate.toFixed(2)),
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get("symbol") || "LQD";
+
+  console.log("🔍 Requested symbol:", symbol);
+
+  try {
+    const cacheKey = cacheHelpers.marketDataKey(symbol);
+    
+    const marketData = await cacheHelpers.getOrSetMarketData(
+      cacheKey,
+      () => fetchMarketDataFromAPI(symbol),
+      CACHE_TTL.MARKET_DATA
+    );
+
+    console.log("🎯 Final response:", marketData);
+    return NextResponse.json(marketData);
   } catch (error) {
     console.error("❌ Error fetching market data:", error);
     return NextResponse.json(

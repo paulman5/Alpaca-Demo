@@ -27,6 +27,13 @@ export function useMarketStocks() {
 
   useEffect(() => {
     fetchStocks();
+    
+    // Auto-refresh every 5 minutes (since we have server-side caching)
+    const interval = setInterval(fetchStocks, 5 * 60 * 1000);
+    
+    return () => {
+      clearInterval(interval);
+    };
   }, [fetchStocks]);
 
   const filteredStocks = stocks.filter(

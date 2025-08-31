@@ -56,8 +56,8 @@ export function useMarketData(symbol: string) {
     };
 
     fetchData();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
+    // Refresh every 3 minutes (since we have server-side caching)
+    const interval = setInterval(fetchData, 3 * 60 * 1000);
 
     return () => {
       mounted = false;

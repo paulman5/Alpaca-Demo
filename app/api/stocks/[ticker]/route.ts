@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { cacheHelpers, CACHE_TTL } from "@/lib/cache/server-cache";
 
 // Check for required environment variables
 if (!process.env.APCA_API_KEY_ID || !process.env.APCA_API_SECRET_KEY) {
@@ -232,17 +233,52 @@ async function fetchHistoricalData(
   }
 }
 
+interface StockResponse {
+  symbol: string;
+  currentPrice: number;
+  priceChange: number;
+  priceChangePercent: number;
+  data: any[];
+  dataSource: string;
+}
+
+async function fetchStockDataFromAPI(ticker: string): Promise<StockResponse> {
+  console.log("API Configuration Status:", {
+    hasApiKey: !!ALPACA_API_KEY,
+    hasApiSecret: !!ALPACA_API_SECRET,
+    dataUrl: DATA_URL,
+  });
+
+  const historicalData = await fetchHistoricalData(ticker);
+
+  if (!historicalData || historicalData.length === 0) {
+    throw new Error("No historical data available");
+  }
+
+  // Get the latest and previous quotes
+  const latestQuote = historicalData[historicalData.length - 1];
+  const prevQuote = historicalData[historicalData.length - 2] || latestQuote;
+
+  // Calculate price changes
+  const currentPrice = latestQuote.c;
+  const priceChange = currentPrice - prevQuote.c;
+  const priceChangePercent = (priceChange / prevQuote.c) * 100;
+
+  return {
+    symbol: ticker,
+    currentPrice,
+    priceChange,
+    priceChangePercent,
+    data: historicalData,
+    dataSource: "real",
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ ticker: string }> },
 ) {
   try {
-    console.log("API Configuration Status:", {
-      hasApiKey: !!ALPACA_API_KEY,
-      hasApiSecret: !!ALPACA_API_SECRET,
-      dataUrl: DATA_URL,
-    });
-
     // Get the ticker from the URL params
     const { ticker } = await params;
 
@@ -256,38 +292,20 @@ export async function GET(
       );
     }
 
-    const historicalData = await fetchHistoricalData(ticker);
+    console.log("🔍 Requested stock data for:", ticker);
 
-    if (!historicalData || historicalData.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: "No historical data available",
-        }),
-        { status: 404 },
-      );
-    }
-
-    // Get the latest and previous quotes
-    const latestQuote = historicalData[historicalData.length - 1];
-    const prevQuote = historicalData[historicalData.length - 2] || latestQuote;
-
-    // Calculate price changes
-    const currentPrice = latestQuote.c;
-    const priceChange = currentPrice - prevQuote.c;
-    const priceChangePercent = (priceChange / prevQuote.c) * 100;
-
-    return new Response(
-      JSON.stringify({
-        symbol: ticker,
-        currentPrice,
-        priceChange,
-        priceChangePercent,
-        data: historicalData,
-        dataSource: "real",
-      }),
+    const cacheKey = cacheHelpers.stockDataKey(ticker);
+    
+    const stockData = await cacheHelpers.getOrSetMarketData(
+      cacheKey,
+      () => fetchStockDataFromAPI(ticker),
+      CACHE_TTL.STOCK_DATA
     );
+
+    console.log("🎯 Final stock response for", ticker);
+    return new Response(JSON.stringify(stockData));
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error fetching stock data:", error);
     return new Response(
       JSON.stringify({
         error: "Failed to fetch stock data",
