@@ -65,6 +65,8 @@ export default function KYCFlow() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [claimAdded, setClaimAdded] = useState(false);
+  const [cooldownUntilMs, setCooldownUntilMs] = useState<number | null>(null);
+  const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState<number>(0);
   const gatewayAddress = useContractAddress("gateway");
   const idFactoryAddress = useContractAddress("idfactory");
   const issuerAddress = useContractAddress("issuer");
@@ -240,6 +242,7 @@ export default function KYCFlow() {
   // Handle KYC signature request
   const handleKYCSignature = async () => {
     if (!address || !onchainIDAddress) return;
+    if (cooldownUntilMs && Date.now() < cooldownUntilMs) return;
 
     try {
       setIsLoading(true);
@@ -303,10 +306,67 @@ export default function KYCFlow() {
         );
       }
       console.error("KYC signature error:", err);
+      // Start 60s cooldown after any failure
+      const until = Date.now() + 60000;
+      setCooldownUntilMs(until);
+      try {
+        if (typeof window !== "undefined" && address) {
+          const storageKey = `kycCooldown:${address.toLowerCase()}`;
+          window.localStorage.setItem(storageKey, String(until));
+        }
+      } catch (_) {
+        // Ignore storage failures
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Hydrate cooldown from localStorage on mount/address change
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined" || !address) return;
+      const storageKey = `kycCooldown:${address.toLowerCase()}`;
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const storedUntil = Number(raw);
+      if (Number.isFinite(storedUntil) && storedUntil > Date.now()) {
+        setCooldownUntilMs(storedUntil);
+      } else {
+        window.localStorage.removeItem(storageKey);
+      }
+    } catch (_) {
+      // Ignore storage failures
+    }
+  }, [address]);
+
+  // Update live countdown for cooldown
+  useEffect(() => {
+    if (cooldownUntilMs === null) {
+      setCooldownRemainingSeconds(0);
+      return;
+    }
+    const tick = () => {
+      const remainingMs = cooldownUntilMs - Date.now();
+      if (remainingMs <= 0) {
+        setCooldownUntilMs(null);
+        setCooldownRemainingSeconds(0);
+        try {
+          if (typeof window !== "undefined" && address) {
+            const storageKey = `kycCooldown:${address.toLowerCase()}`;
+            window.localStorage.removeItem(storageKey);
+          }
+        } catch (_) {
+          // Ignore storage failures
+        }
+      } else {
+        setCooldownRemainingSeconds(Math.ceil(remainingMs / 1000));
+      }
+    };
+    tick();
+    const id = setInterval(tick, 250);
+    return () => clearInterval(id);
+  }, [cooldownUntilMs, address]);
 
   // Handler for add claim button
   const handleAddClaim = async () => {
@@ -663,7 +723,7 @@ export default function KYCFlow() {
 
                       <Button
                         onClick={handleKYCSignature}
-                        isDisabled={!address || !onchainIDAddress || isLoading || !isPharos}
+                        isDisabled={!address || !onchainIDAddress || isLoading || !isPharos || (cooldownUntilMs !== null && cooldownRemainingSeconds > 0)}
                         className="w-full"
                       >
                         {isLoading ? (
@@ -673,6 +733,8 @@ export default function KYCFlow() {
                           </>
                         ) : !isPharos ? (
                           "Switch to Pharos Network"
+                        ) : cooldownUntilMs !== null && cooldownRemainingSeconds > 0 ? (
+                          `Retry in ${Math.max(1, cooldownRemainingSeconds)}s`
                         ) : (
                           "Get KYC Signature"
                         )}
@@ -738,11 +800,11 @@ export default function KYCFlow() {
                         )}
                       </Button>
 
-                      {(error || addClaimError) && (
+                      {addClaimError && (
                         <div className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg">
                           <AlertCircle className="h-4 w-4 text-red-600" />
                           <span className="text-sm text-red-600">
-                            {error || addClaimError}
+                            {addClaimError}
                           </span>
                         </div>
                       )}
