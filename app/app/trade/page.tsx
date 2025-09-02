@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 import TradeHeader from "@/components/features/trade/tradeheader";
 import TradeTokenSelector from "@/components/features/trade/tradetokenselector";
 import TradeChart from "@/components/features/trade/tradechart";
@@ -115,8 +116,7 @@ const TradePage = () => {
   useEffect(() => {
     async function fetchETFData() {
       try {
-        const response = await fetch(`/api/stocks/${selectedToken}`);
-        const data = await response.json();
+        const data = await clientCacheHelpers.fetchStockData(selectedToken);
         setEtfData(data);
       } catch (error) {}
     }
@@ -127,8 +127,7 @@ const TradePage = () => {
     async function fetchChartData() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/stocks/${selectedToken}`);
-        const json = await res.json();
+        const json = await clientCacheHelpers.fetchStockData(selectedToken);
         if (json.error) {
           // Don't use mock data, just keep the loading state
           console.log("📊 Chart data error:", json.error);
@@ -157,8 +156,7 @@ const TradePage = () => {
     async function fetchPriceData() {
       try {
         setPriceLoading(true);
-        const res = await fetch(`/api/marketdata?symbol=${selectedToken}`);
-        const json = await res.json();
+        const json = await clientCacheHelpers.fetchMarketData(selectedToken);
         if (!isMounted) return;
 
         if (json.price && json.price > 0) {
@@ -184,8 +182,8 @@ const TradePage = () => {
     // Initial fetch
     fetchPriceData();
 
-    // Only refetch every 30 seconds instead of 5 seconds
-    const interval = setInterval(fetchPriceData, 30000);
+    // Refetch every 5 minutes to reduce Vercel compute usage
+    const interval = setInterval(fetchPriceData, 5 * 60 * 1000);
 
     return () => {
       isMounted = false;

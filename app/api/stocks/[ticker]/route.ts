@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { cacheHelpers, CACHE_TTL } from "@/lib/cache/server-cache";
 
 // Check for required environment variables
 if (!process.env.APCA_API_KEY_ID || !process.env.APCA_API_SECRET_KEY) {
@@ -29,70 +28,7 @@ interface AlpacaResponse {
   [symbol: string]: AlpacaQuote[];
 }
 
-// Generate mock data for fallback
-function generateMockData(ticker: string) {
-  const basePrice =
-    {
-      SUSC: 108.5, // Spout US Corporate Bond Token
-      LQD: 107.25, // iShares iBoxx $ Investment Grade Corporate Bond ETF
-    }[ticker] || 100.0;
 
-  const data = [];
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 90); // Get last 90 days
-
-  // Generate data for each day in the range
-  for (
-    let date = new Date(start);
-    date <= end;
-    date.setDate(date.getDate() + 1)
-  ) {
-    // Skip weekends
-    if (date.getDay() === 0 || date.getDay() === 6) continue;
-
-    // Calculate days from start for trend
-    const daysSinceStart = Math.floor(
-      (date.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    // Create a slight upward trend with some random variation
-    const dayFactor = 1 + daysSinceStart * 0.0002; // Small daily increase
-    const randomFactor = 0.997 + Math.random() * 0.006; // ±0.3% random variation
-    const price = basePrice * dayFactor * randomFactor;
-
-    // Add small intraday variation
-    const variance = price * 0.001; // 0.1% intraday variance
-    const open = price + (Math.random() - 0.5) * variance;
-    const close = price + (Math.random() - 0.5) * variance;
-    const high = Math.max(open, close) + Math.random() * variance * 0.5;
-    const low = Math.min(open, close) - Math.random() * variance * 0.5;
-
-    // Volume between 100K-300K for bonds
-    const volume = Math.floor(100000 + Math.random() * 200000);
-
-    // Format the date as YYYY-MM-DD
-    const formattedDate = date.toISOString().split("T")[0];
-
-    data.push({
-      time: formattedDate,
-      open: Math.round(open * 100) / 100,
-      high: Math.round(high * 100) / 100,
-      low: Math.round(low * 100) / 100,
-      close: Math.round(close * 100) / 100,
-      volume,
-      quote: {
-        t: new Date(date).toISOString(),
-        ap: Math.round((close + variance * 0.5) * 100) / 100,
-        bp: Math.round((close - variance * 0.5) * 100) / 100,
-        as: Math.floor(volume / 2),
-        bs: Math.floor(volume / 2),
-      },
-    });
-  }
-
-  return data;
-}
 
 async function fetchHistoricalData(
   ticker: string,
@@ -294,14 +230,7 @@ export async function GET(
 
     console.log("🔍 Requested stock data for:", ticker);
 
-    const cacheKey = cacheHelpers.stockDataKey(ticker);
-    
-    const stockData = await cacheHelpers.getOrSetMarketData(
-      cacheKey,
-      () => fetchStockDataFromAPI(ticker),
-      CACHE_TTL.STOCK_DATA
-    );
-
+    const stockData = await fetchStockDataFromAPI(ticker);
     console.log("🎯 Final stock response for", ticker);
     return new Response(JSON.stringify(stockData));
   } catch (error) {

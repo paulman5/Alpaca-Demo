@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { StockData } from "@/lib/types/markets";
 import { fetchAllStocks } from "@/lib/services/marketData";
 
@@ -28,19 +28,25 @@ export function useMarketStocks() {
   useEffect(() => {
     fetchStocks();
     
-    // Auto-refresh every 5 minutes (since we have server-side caching)
-    const interval = setInterval(fetchStocks, 5 * 60 * 1000);
+    // Auto-refresh every 15 minutes to reduce Vercel compute usage
+    const interval = setInterval(fetchStocks, 15 * 60 * 1000);
     
     return () => {
       clearInterval(interval);
     };
-  }, [fetchStocks]);
+  }, []); // Remove fetchStocks dependency to prevent infinite loops
 
-  const filteredStocks = stocks.filter(
-    (stock) =>
-      stock.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredStocks = useMemo(() => {
+    return stocks.filter(
+      (stock) =>
+        stock.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        stock.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [stocks, searchTerm]);
+
+  const handleSearchTermChange = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
 
   return {
     stocks: filteredStocks,
@@ -48,7 +54,7 @@ export function useMarketStocks() {
     refreshing,
     lastUpdated,
     searchTerm,
-    setSearchTerm,
+    setSearchTerm: handleSearchTermChange,
     refresh: fetchStocks,
   };
 }

@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { cacheHelpers, CACHE_TTL } from "@/lib/cache/server-cache";
-import "@/lib/cache/cache-monitor"; // Auto-start cache monitoring
 
 interface AlpacaQuote {
   t: string;
@@ -89,23 +87,15 @@ async function fetchMarketDataFromAPI(symbol: string): Promise<MarketDataRespons
     askPrice,
   );
 
-  // Step 3: Get cached yield data or fetch fresh
-  let actualYield = 4.95; // Fallback value
+  // Step 3: Get yield data directly
+  let actualYield = null;
   try {
-    const yieldCacheKey = cacheHelpers.yieldDataKey(symbol);
-    const cachedYield = await cacheHelpers.getOrSetMarketData(
-      yieldCacheKey,
-      async () => {
-        // Fetch yield data directly from Alpaca instead of making internal API call
-        const yieldData = await fetchYieldDataFromAlpaca(symbol, options);
-        return yieldData.yield;
-      },
-      CACHE_TTL.YIELD_DATA
-    );
-    actualYield = cachedYield || actualYield;
-    console.log("📊 Yield data (cached or fresh):", actualYield);
+    const yieldData = await fetchYieldDataFromAlpaca(symbol, options);
+    actualYield = yieldData.yield;
+    console.log("📊 Yield data:", actualYield);
   } catch (yieldError) {
-    console.log("⚠️ Error fetching yield, using fallback:", yieldError);
+    console.log("⚠️ Error fetching yield data:", yieldError);
+    actualYield = null;
   }
 
   return {
@@ -115,7 +105,7 @@ async function fetchMarketDataFromAPI(symbol: string): Promise<MarketDataRespons
     bidPrice: bidPrice,
     previousClose: resolvedPreviousClose,
     timestamp: currentBar?.t ?? latestQuote?.t ?? null,
-    yield: actualYield,
+    yield: actualYield ?? 0,
     fallbackUsed: previousBar == null || !resolvedPrice,
     dates: {
       current: currentBar?.t ?? null,
@@ -177,14 +167,7 @@ export async function GET(request: Request) {
   console.log("🔍 Requested symbol:", symbol);
 
   try {
-    const cacheKey = cacheHelpers.marketDataKey(symbol);
-    
-    const marketData = await cacheHelpers.getOrSetMarketData(
-      cacheKey,
-      () => fetchMarketDataFromAPI(symbol),
-      CACHE_TTL.MARKET_DATA
-    );
-
+    const marketData = await fetchMarketDataFromAPI(symbol);
     console.log("🎯 Final response:", marketData);
     return NextResponse.json(marketData);
   } catch (error) {

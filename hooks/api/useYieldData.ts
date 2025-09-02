@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 
 interface YieldData {
   symbol: string;
@@ -20,12 +21,7 @@ export function useYieldData(symbol: string) {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/marketdata/yields?symbol=${symbol}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch yield data");
-        }
-
-        const yieldData = await response.json();
+        const yieldData = await clientCacheHelpers.fetchYieldData(symbol);
         setData(yieldData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");

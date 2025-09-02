@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 
 // This matches what our API returns
 interface MarketDataResponse {
@@ -30,14 +31,7 @@ export function useMarketData(symbol: string) {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/marketdata?symbol=${symbol}`);
-
-        if (!response.ok) {
-          const errorData = (await response.json()) as MarketDataError;
-          throw new Error(errorData.error || "Failed to fetch market data");
-        }
-
-        const marketData = (await response.json()) as MarketDataResponse;
+        const marketData = await clientCacheHelpers.fetchMarketData(symbol);
 
         if (mounted) {
           setData(marketData);
@@ -56,14 +50,14 @@ export function useMarketData(symbol: string) {
     };
 
     fetchData();
-    // Refresh every 3 minutes (since we have server-side caching)
-    const interval = setInterval(fetchData, 3 * 60 * 1000);
+    // Refresh every 10 minutes to reduce Vercel compute usage
+    const interval = setInterval(fetchData, 10 * 60 * 1000);
 
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, [symbol]);
+  }, [symbol]); // Keep symbol dependency but ensure fetchData is stable
 
   // Calculate daily change percentage
   const dailyChangePercent =

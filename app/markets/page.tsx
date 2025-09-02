@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 
 // Popular stocks with company names - prices will be fetched from API
 const popularStocks = [
@@ -122,20 +123,17 @@ function MarketsPage() {
 
   const fetchStockData = async (ticker: string) => {
     try {
-      const response = await fetch(`/api/stocks/${ticker}`);
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          ticker: data.ticker,
-          name: popularStocks.find((s) => s.ticker === ticker)?.name || ticker,
-          price: data.currentPrice,
-          change: data.priceChange,
-          changePercent: data.priceChangePercent,
-          volume: formatVolume(data.volume),
-          marketCap: formatMarketCap(data.marketCap),
-          dataSource: data.dataSource,
-        };
-      }
+      const data = await clientCacheHelpers.fetchStockData(ticker);
+      return {
+        ticker: data.ticker,
+        name: popularStocks.find((s) => s.ticker === ticker)?.name || ticker,
+        price: data.currentPrice,
+        change: data.priceChange,
+        changePercent: data.priceChangePercent,
+        volume: formatVolume(data.volume),
+        marketCap: formatMarketCap(data.marketCap),
+        dataSource: data.dataSource,
+      };
     } catch (error) {
       console.error(`Error fetching ${ticker}:`, error);
     }

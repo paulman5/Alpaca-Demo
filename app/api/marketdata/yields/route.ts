@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cacheHelpers, CACHE_TTL } from "@/lib/cache/server-cache";
 
 interface YieldData {
   symbol: string;
@@ -96,14 +95,7 @@ export async function GET(request: Request) {
   console.log("🔍 Requested yield for symbol:", symbol);
 
   try {
-    const cacheKey = cacheHelpers.yieldDataKey(symbol);
-    
-    const yieldData = await cacheHelpers.getOrSetMarketData(
-      cacheKey,
-      () => fetchYieldDataFromAPI(symbol),
-      CACHE_TTL.YIELD_DATA
-    );
-
+    const yieldData = await fetchYieldDataFromAPI(symbol);
     console.log("🎯 Final yield response:", yieldData);
     return NextResponse.json(yieldData);
   } catch (error) {

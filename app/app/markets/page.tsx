@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 
 // Popular stocks with company names - prices will be fetched from API
 const popularStocks = [
@@ -135,11 +136,7 @@ function MarketsPage() {
 
   const fetchStockData = async (ticker: string) => {
     try {
-      const response = await fetch(`/api/stocks/${ticker}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await clientCacheHelpers.fetchStockData(ticker);
 
       // Return a properly formatted StockData object with fallbacks
       return {
@@ -171,14 +168,39 @@ function MarketsPage() {
   const fetchAllStocks = useCallback(async () => {
     setRefreshing(true);
     try {
-      const promises = popularStocks.map((stock) =>
-        fetchStockData(stock.ticker),
-      );
-      const results = await Promise.all(promises);
+      // Use batch API for better performance
+      const tickers = popularStocks.map(stock => stock.ticker);
+      const batchData = await clientCacheHelpers.fetchBatchStockData(tickers);
+      
+      // Transform batch response to StockData format
+      const results = popularStocks.map(stock => {
+        const data = batchData[stock.ticker];
+        if (!data) {
+          return {
+            ticker: stock.ticker,
+            name: stock.name,
+            price: null,
+            change: null,
+            changePercent: null,
+            volume: "0",
+            marketCap: "$0",
+            dataSource: "error",
+          };
+        }
 
-      const validStocks = results.filter(
-        (stock) => stock !== null,
-      ) as StockData[];
+        return {
+          ticker: data.symbol,
+          name: stock.name,
+          price: data.currentPrice,
+          change: data.priceChange,
+          changePercent: data.priceChangePercent,
+          volume: formatVolume(0), // Batch API doesn't include volume yet
+          marketCap: formatMarketCap(0), // Batch API doesn't include market cap yet
+          dataSource: data.dataSource,
+        };
+      });
+
+      const validStocks = results.filter(stock => stock !== null) as StockData[];
       setStocks(validStocks);
       setLastUpdated(new Date());
     } catch (error) {

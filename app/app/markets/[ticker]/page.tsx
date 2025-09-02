@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 import {
   ArrowLeft,
   TrendingUp,
@@ -56,13 +57,7 @@ export default function TickerPage() {
     const fetchStockData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/stocks/${ticker}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch stock data");
-        }
-
-        const data = await response.json();
+        const data = await clientCacheHelpers.fetchStockData(ticker);
         setStockInfo(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");

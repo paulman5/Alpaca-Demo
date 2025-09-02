@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { clientCacheHelpers } from "@/lib/cache/client-cache";
 import {
   Card,
   CardContent,
@@ -35,34 +36,25 @@ export default function Swapinterface() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/marketdata?symbol=SLQD")
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`Server error: ${res.status}`);
-        }
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Invalid response format");
-        }
-
-        return res.json();
-      })
-      .then((data) => {
-        const ap = data?.quotes?.SLQD?.ap;
-        if (typeof ap === "number") {
-          setAskPrice(ap);
+    const fetchAskPrice = async () => {
+      setLoading(true);
+      try {
+        const data = await clientCacheHelpers.fetchMarketData("SLQD");
+        const askPrice = data?.askPrice;
+        if (typeof askPrice === "number") {
+          setAskPrice(askPrice);
         } else {
           setError("Ask price not found");
         }
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching market data:", err);
         setError("Failed to fetch market data");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchAskPrice();
   }, []);
 
   const handleSwapTokens = () => {
