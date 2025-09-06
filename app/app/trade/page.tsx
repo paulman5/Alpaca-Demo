@@ -238,7 +238,7 @@ const TradePage = () => {
     // Convert USDC amount to proper decimals using USDC_DECIMALS
     const usdcAmountNum = parseFloat(buyUsdc);
     const amount = BigInt(
-      Math.floor(usdcAmountNum * Math.pow(10, USDC_DECIMALS)),
+      Math.floor(usdcAmountNum * 1e6),
     );
 
     const estimatedTokenAmount =
