@@ -18,8 +18,24 @@ export function useOnchainID({
   issuer: string;
   topic?: number;
 }) {
+  // Initialize cache from localStorage immediately to prevent initial fetch
+  const [cachedIdentityAddress, setCachedIdentityAddress] = useState<string | null>(() => {
+    if (typeof window !== "undefined" && userAddress) {
+      return localStorage.getItem(`identityAddress_${userAddress}`);
+    }
+    return null;
+  });
+  
   // First check if onchain ID actually exists using ID factory
-  const canReadIdentity = !!userAddress && !!idFactoryAddress;
+  // Only fetch if we don't have a cached result or if user address changed
+  const canReadIdentity = !!userAddress && !!idFactoryAddress && !cachedIdentityAddress;
+  
+  console.log("[useOnchainID] 🔍 Fetch decision:", {
+    userAddress,
+    idFactoryAddress,
+    cachedIdentityAddress,
+    canReadIdentity,
+  });
   const {
     data: actualOnchainID,
     isLoading: isLoadingActualID,
@@ -95,38 +111,78 @@ export function useOnchainID({
     query: { enabled: canReadVerification },
   });
 
-  // Use actual onchain ID for existence check, but return verification status for hasOnchainID
-  const onchainID = actualOnchainID;
-  const isLoading = isLoadingActualID || isLoadingRegistry || isVerificationLoading;
+  // Use cached address if available, otherwise use the fetched result
+  const onchainID = cachedIdentityAddress || actualOnchainID;
+  
+  // Only show loading if we don't have a cached result and are actually fetching
+  // If we have a cached identity address, we don't need to show loading for registry/verification
+  const isLoading = !cachedIdentityAddress && (isLoadingActualID || isLoadingRegistry || isVerificationLoading);
+  
+  console.log("[useOnchainID] 🔍 Loading state:", {
+    cachedIdentityAddress,
+    isLoadingActualID,
+    isLoadingRegistry,
+    isVerificationLoading,
+    isLoading,
+  });
   const error = actualIDError || registryError || verificationError;
   
   // Combined refetch function
   const refetchIdentity = async () => {
+    setCachedIdentityAddress(null); // Clear cache to force refetch
+    // Also clear localStorage cache
+    if (typeof window !== "undefined" && userAddress) {
+      localStorage.removeItem(`identityAddress_${userAddress}`);
+    }
     await refetchActualID();
     await refetchVerification();
   };
 
   const hasOnchainID = Boolean(
-    actualOnchainID &&
-      typeof actualOnchainID === "string" &&
-      actualOnchainID !== "0x0000000000000000000000000000000000000000",
+    onchainID &&
+      typeof onchainID === "string" &&
+      onchainID !== "0x0000000000000000000000000000000000000000",
   );
 
   // Persistent state to track if user has ever had an onchain ID
   const [hasEverHadOnchainID, setHasEverHadOnchainID] = useState(false);
 
-  // Effect to load hasEverHadOnchainID from localStorage once userAddress is available
+  // Effect to load cached data from localStorage once userAddress is available
   useEffect(() => {
     if (typeof window !== "undefined" && userAddress) {
-      const stored = localStorage.getItem(`hasEverHadOnchainID_${userAddress}`);
-      const initialValue = stored === "true";
+      const storedHasEverHad = localStorage.getItem(`hasEverHadOnchainID_${userAddress}`);
+      const initialHasEverHad = storedHasEverHad === "true";
+      
       console.log("[useOnchainID] 🔍 Loading from localStorage (useEffect):", {
         userAddress,
-        stored,
-        initialValue,
+        storedHasEverHad,
+        initialHasEverHad,
+        cachedIdentityAddress,
       });
-      setHasEverHadOnchainID(initialValue);
+      
+      setHasEverHadOnchainID(initialHasEverHad);
+      // Only set cached address if it's not already set from initial state
+      if (!cachedIdentityAddress) {
+        const storedIdentityAddress = localStorage.getItem(`identityAddress_${userAddress}`);
+        setCachedIdentityAddress(storedIdentityAddress);
+      }
     }
+  }, [userAddress, cachedIdentityAddress]);
+
+  // Cache the identity address when we get a result
+  useEffect(() => {
+    if (actualOnchainID && typeof actualOnchainID === "string") {
+      setCachedIdentityAddress(actualOnchainID);
+      // Also save to localStorage for persistence
+      if (typeof window !== "undefined" && userAddress) {
+        localStorage.setItem(`identityAddress_${userAddress}`, actualOnchainID);
+      }
+    }
+  }, [actualOnchainID, userAddress]);
+
+  // Clear cache when user address changes
+  useEffect(() => {
+    setCachedIdentityAddress(null);
   }, [userAddress]); // Dependency on userAddress
 
   // Track when user has an onchain ID and persist that state
