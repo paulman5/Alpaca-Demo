@@ -18,7 +18,22 @@ export function useOnchainID({
   issuer: string;
   topic?: number;
 }) {
-  // Get identity registry address from RWA token first
+  // First check if onchain ID actually exists using ID factory
+  const canReadIdentity = !!userAddress && !!idFactoryAddress;
+  const {
+    data: actualOnchainID,
+    isLoading: isLoadingActualID,
+    error: actualIDError,
+    refetch: refetchActualID,
+  } = useReadContract({
+    address: canReadIdentity ? (idFactoryAddress as `0x${string}`) : undefined,
+    abi: idFactoryABI,
+    functionName: "getIdentity",
+    args: canReadIdentity ? [userAddress as `0x${string}`] : undefined,
+    query: { enabled: canReadIdentity },
+  });
+
+  // Get identity registry address from RWA token for verification check
   const rwaTokenAddress = "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB"; // Base Sepolia RWA token
   
   const {
@@ -45,13 +60,13 @@ export function useOnchainID({
     functionName: "identityRegistry",
   });
 
-  // Defensive: Only run contract read if all required values are present
-  const canReadIdentity = !!userAddress && !!identityRegistryAddress;
+  // Check verification status using identity registry
+  const canReadVerification = !!userAddress && !!identityRegistryAddress;
   const {
     data: isVerified,
     isLoading: isVerificationLoading,
     error: verificationError,
-    refetch: refetchIdentity,
+    refetch: refetchVerification,
   } = useReadContract({
     address: identityRegistryAddress as `0x${string}`,
     abi: [
@@ -76,16 +91,26 @@ export function useOnchainID({
       },
     ],
     functionName: "isVerified",
-    args: canReadIdentity ? [userAddress as `0x${string}`] : undefined,
-    query: { enabled: canReadIdentity },
+    args: canReadVerification ? [userAddress as `0x${string}`] : undefined,
+    query: { enabled: canReadVerification },
   });
 
-  // Map isVerified to onchainID for backward compatibility
-  const onchainID = isVerified ? "0x0000000000000000000000000000000000000001" : "0x0000000000000000000000000000000000000000";
-  const isLoading = isLoadingRegistry || isVerificationLoading;
-  const error = registryError || verificationError;
+  // Use actual onchain ID for existence check, but return verification status for hasOnchainID
+  const onchainID = actualOnchainID;
+  const isLoading = isLoadingActualID || isLoadingRegistry || isVerificationLoading;
+  const error = actualIDError || registryError || verificationError;
+  
+  // Combined refetch function
+  const refetchIdentity = async () => {
+    await refetchActualID();
+    await refetchVerification();
+  };
 
-  const hasOnchainID = Boolean(isVerified);
+  const hasOnchainID = Boolean(
+    actualOnchainID &&
+      typeof actualOnchainID === "string" &&
+      actualOnchainID !== "0x0000000000000000000000000000000000000000",
+  );
 
   // Persistent state to track if user has ever had an onchain ID
   const [hasEverHadOnchainID, setHasEverHadOnchainID] = useState(false);
@@ -242,5 +267,6 @@ export function useOnchainID({
     kycLoading,
     kycError,
     refetch, // Export the refetch function
+    isVerified: isVerified || false, // Export verification status from identity registry
   };
 }
