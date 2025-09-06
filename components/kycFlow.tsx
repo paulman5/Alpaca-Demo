@@ -192,10 +192,12 @@ export default function KYCFlow() {
     },
   ];
 
-  // Filter out Add Claim step only if both OnchainID and KYC claim exist
+  // Filter out Add Claim step if identity is verified in the registry
+  // Since identity registry verification is what matters for token minting,
+  // we don't need the onchain identity claim step
   const visibleSteps = (() => {
-    if (hasExistingIdentity && hasKYCClaim) {
-      return steps.filter((step) => step.id !== 4); // Skip add claim if already exists
+    if (isIdentityVerified) {
+      return steps.filter((step) => step.id !== 4); // Skip add claim if verified in registry
     } else {
       return steps;
     }
