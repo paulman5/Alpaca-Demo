@@ -31,14 +31,14 @@ const team = [
   },
   // {
   //   name: "Mihir Sahu",
-  //   title: "Co-Founder & Head of Privacy",
+  //   title: "Co-Founder & Head of Engineering",
   //   img: "/HeadshotMihir.PNG",
   //   bio: "Web3 engineer with expertise in privacy, cross-chain systems, and decentralized finance. Experience at Inco building TEE-powered applications for confidential DeFi and payments, and recognized at major hackathon competitions for his work in the web3 privacy space.",
   //   linkedin: "https://www.linkedin.com/in/0xmihirsahu/",
   // },
   // {
   //   name: "Lovish Badlani",
-  //   title: "Co-Founder & Senior Backend Engineer",
+  //   title: "Co-Founder & Tech Lead",
   //   img: "/HeadshotLovish.jpg",
   //   bio: "Senior software engineer with experience in backend systems and large-scale infrastructure. He has worked as an engineer at BlackRock and contributed to building software across both startups and enterprises.",
   //   linkedin: "https://www.linkedin.com/in/lovish-badlani-250a05151/",
