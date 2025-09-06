@@ -181,7 +181,7 @@ export default function KYCFlow() {
       title: "Verification",
       description: "Complete verification with signature",
       icon: Shield,
-      status: hasKYCClaim || kycSignature ? "completed" : "pending",
+      status: isIdentityVerified || kycSignature ? "completed" : "pending",
     },
     {
       id: 4,
@@ -203,9 +203,9 @@ export default function KYCFlow() {
 
   // Modify progress calculation
   const progress = (() => {
-    if (hasExistingIdentity && hasKYCClaim) {
+    if (hasExistingIdentity && isIdentityVerified) {
       return 100;
-    } else if (hasKYCClaim && !isClaimAdded) {
+    } else if (isIdentityVerified && !isClaimAdded) {
       return 75;
     } else if (hasExistingIdentity || isDeployed) {
       return 50;
@@ -403,14 +403,14 @@ export default function KYCFlow() {
       setCurrentStep(1);
     } else if (isConnected && !hasExistingIdentity && !isDeployed) {
       setCurrentStep(2);
-    } else if ((hasExistingIdentity || isDeployed) && !hasKYCClaim) {
+    } else if ((hasExistingIdentity || isDeployed) && !isIdentityVerified) {
       setCurrentStep(3);
-    } else if (hasKYCClaim && !isClaimAdded) {
+    } else if (isIdentityVerified && !isClaimAdded) {
       setCurrentStep(4);
-    } else if (hasKYCClaim && isClaimAdded) {
+    } else if (isIdentityVerified && isClaimAdded) {
       setCurrentStep(4); // Stay at the last step when complete
     }
-  }, [isConnected, isDeployed, hasKYCClaim, isClaimAdded, hasExistingIdentity]);
+  }, [isConnected, isDeployed, isIdentityVerified, isClaimAdded, hasExistingIdentity]);
 
   // Update onchain ID address when identity is deployed or already exists
   useEffect(() => {
@@ -679,16 +679,16 @@ export default function KYCFlow() {
               {/* Step 3: KYC Verification */}
               {step.id === 3 && (
                 <div className="space-y-4">
-                  {hasKYCClaim ? (
+                  {isIdentityVerified ? (
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3 p-4 bg-emerald-50 rounded-lg">
                         <CheckCircle className="h-5 w-5 text-emerald-600" />
                         <div className="flex-1">
                           <p className="font-medium text-emerald-800">
-                            Verification Complete
+                            Identity Verification Complete
                           </p>
                           <p className="text-sm text-emerald-600">
-                            Your verification has been completed successfully.
+                            Your identity is verified in the identity registry and you can mint tokens.
                           </p>
                         </div>
                       </div>
@@ -754,16 +754,15 @@ export default function KYCFlow() {
               {/* Step 4: Add Claim to Identity */}
               {step.id === 4 && hasExistingIdentity && (
                 <div className="space-y-4">
-                  {hasKYCClaim ? (
+                  {isIdentityVerified ? (
                     <div className="flex items-center space-x-3 p-4 bg-emerald-50 rounded-lg">
                       <CheckCircle className="h-5 w-5 text-emerald-600" />
                       <div>
                         <p className="font-medium text-emerald-800">
-                          Verification Completed
+                          Identity Verification Completed
                         </p>
                         <p className="text-sm text-emerald-600">
-                          Your verification claim is already present on your
-                          onchain identity.
+                          Your identity is verified in the identity registry and you can mint tokens.
                         </p>
                       </div>
                     </div>
