@@ -18,26 +18,74 @@ export function useOnchainID({
   issuer: string;
   topic?: number;
 }) {
-  // Defensive: Only run contract read if all required values are present
-  const canReadIdentity = !!userAddress && !!idFactoryAddress;
+  // Get identity registry address from RWA token first
+  const rwaTokenAddress = "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB"; // Base Sepolia RWA token
+  
   const {
-    data: onchainID,
-    isLoading,
-    error,
+    data: identityRegistryAddress,
+    isLoading: isLoadingRegistry,
+    error: registryError,
+  } = useReadContract({
+    address: rwaTokenAddress as `0x${string}`,
+    abi: [
+      {
+        inputs: [],
+        name: "identityRegistry",
+        outputs: [
+          {
+            internalType: "contract IIdentityRegistry",
+            name: "",
+            type: "address",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
+      },
+    ],
+    functionName: "identityRegistry",
+  });
+
+  // Defensive: Only run contract read if all required values are present
+  const canReadIdentity = !!userAddress && !!identityRegistryAddress;
+  const {
+    data: isVerified,
+    isLoading: isVerificationLoading,
+    error: verificationError,
     refetch: refetchIdentity,
   } = useReadContract({
-    address: canReadIdentity ? (idFactoryAddress as `0x${string}`) : undefined,
-    abi: idFactoryABI,
-    functionName: "getIdentity",
-    args: canReadIdentity ? [userAddress as `0x${string}`] : [],
+    address: identityRegistryAddress as `0x${string}`,
+    abi: [
+      {
+        inputs: [
+          {
+            internalType: "address",
+            name: "_userAddress",
+            type: "address",
+          },
+        ],
+        name: "isVerified",
+        outputs: [
+          {
+            internalType: "bool",
+            name: "",
+            type: "bool",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
+      },
+    ],
+    functionName: "isVerified",
+    args: canReadIdentity ? [userAddress as `0x${string}`] : undefined,
     query: { enabled: canReadIdentity },
   });
 
-  const hasOnchainID = Boolean(
-    onchainID &&
-      typeof onchainID === "string" &&
-      onchainID !== "0x0000000000000000000000000000000000000000",
-  );
+  // Map isVerified to onchainID for backward compatibility
+  const onchainID = isVerified ? "0x0000000000000000000000000000000000000001" : "0x0000000000000000000000000000000000000000";
+  const isLoading = isLoadingRegistry || isVerificationLoading;
+  const error = registryError || verificationError;
+
+  const hasOnchainID = Boolean(isVerified);
 
   // Persistent state to track if user has ever had an onchain ID
   const [hasEverHadOnchainID, setHasEverHadOnchainID] = useState(false);
