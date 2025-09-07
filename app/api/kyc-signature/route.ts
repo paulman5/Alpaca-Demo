@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/utils/fetchWithTimeout";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 10;
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call the external API
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       "https://rwa-deploy-backend.onrender.com/user/kyc-signature",
       {
         method: "POST",
@@ -36,6 +40,7 @@ export async function POST(request: NextRequest) {
           topic,
           countryCode,
         }),
+        timeoutMs: 8000,
       },
     );
 

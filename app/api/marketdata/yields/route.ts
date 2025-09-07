@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/utils/fetchWithTimeout";
+declare const process: any;
 
 interface YieldData {
   symbol: string;
@@ -28,7 +29,7 @@ async function fetchYieldDataFromAPI(symbol: string): Promise<YieldData> {
 
   // Get current price for yield calculation
   const priceUrl = `https://data.alpaca.markets/v2/stocks/quotes/latest?symbols=${symbol}`;
-  const priceRes = await fetch(priceUrl, options);
+  const priceRes = await fetchWithTimeout(priceUrl, { ...options, timeoutMs: 7000 });
   const priceData = await priceRes.json();
   console.log("Price data:", priceData);
   const currentPrice = priceData.quotes?.[symbol]?.ap || 0; // Using ask price
@@ -41,7 +42,7 @@ async function fetchYieldDataFromAPI(symbol: string): Promise<YieldData> {
 
   const dividendUrl = `https://data.alpaca.markets/v1/corporate-actions?symbols=${symbol}&types=cash_dividend&start=${oneYearAgo.toISOString().split("T")[0]}&end=${today.toISOString().split("T")[0]}`;
   console.log("Dividend URL:", dividendUrl);
-  const dividendRes = await fetch(dividendUrl, options);
+  const dividendRes = await fetchWithTimeout(dividendUrl, { ...options, timeoutMs: 7000 });
   const dividendResponseData = await dividendRes.json();
 
   // Fix how we access the corporate_actions data
@@ -88,6 +89,9 @@ async function fetchYieldDataFromAPI(symbol: string): Promise<YieldData> {
   };
 }
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 10;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const symbol = searchParams.get("symbol") || "LQD";
@@ -97,12 +101,14 @@ export async function GET(request: Request) {
   try {
     const yieldData = await fetchYieldDataFromAPI(symbol);
     console.log("🎯 Final yield response:", yieldData);
-    return NextResponse.json(yieldData);
+    return new Response(JSON.stringify(yieldData), {
+      headers: { "content-type": "application/json" },
+    });
   } catch (error) {
     console.error("❌ Error fetching yield data:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch yield data" },
-      { status: 500 },
-    );
+    return new Response(JSON.stringify({ error: "Failed to fetch yield data" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
   }
 }

@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
+export const maxDuration = 10;
+import { fetchWithTimeout } from "@/lib/utils/fetchWithTimeout";
 
 // Check for required environment variables
 if (!process.env.APCA_API_KEY_ID || !process.env.APCA_API_SECRET_KEY) {
@@ -34,11 +37,12 @@ async function fetchBatchStockData(tickers: string[]): Promise<BatchResponse> {
         try {
           // Simplified data fetching for batch - just get latest quote
           const quoteUrl = `${DATA_URL}/v2/stocks/quotes/latest?symbols=${ticker}`;
-          const response = await fetch(quoteUrl, {
+          const response = await fetchWithTimeout(quoteUrl, {
             headers: {
               "APCA-API-KEY-ID": ALPACA_API_KEY,
               "APCA-API-SECRET-KEY": ALPACA_API_SECRET,
             },
+            timeoutMs: 6000,
           });
 
           if (!response.ok) {

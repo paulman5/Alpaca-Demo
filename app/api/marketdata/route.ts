@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+// Using standard Response to avoid framework type coupling in lints
+import { fetchWithTimeout } from "@/lib/utils/fetchWithTimeout";
+declare const process: any;
 
 interface AlpacaQuote {
   t: string;
@@ -46,7 +48,7 @@ async function fetchMarketDataFromAPI(symbol: string): Promise<MarketDataRespons
   // Step 1: Get latest quote for fallback price
   const latestUrl = `https://data.alpaca.markets/v2/stocks/quotes/latest?symbols=${symbol}`;
   console.log("📡 Fetching quote from:", latestUrl);
-  const latestRes = await fetch(latestUrl, options);
+  const latestRes = await fetchWithTimeout(latestUrl, { ...options, timeoutMs: 7000 });
   const latestData = (await latestRes.json()) as {
     quotes: { [symbol: string]: AlpacaQuote };
   };
@@ -58,7 +60,7 @@ async function fetchMarketDataFromAPI(symbol: string): Promise<MarketDataRespons
   // Step 2: Get the most recent 10 bars
   const barsUrl = `https://data.alpaca.markets/v2/stocks/bars?symbols=${symbol}&timeframe=1Day&limit=10`;
   console.log("📡 Fetching bars from:", barsUrl);
-  const barsRes = await fetch(barsUrl, options);
+  const barsRes = await fetchWithTimeout(barsUrl, { ...options, timeoutMs: 7000 });
   const barsData = (await barsRes.json()) as AlpacaBarsResponse;
 
   const bars = barsData.bars?.[symbol] ?? [];
@@ -160,6 +162,9 @@ async function fetchYieldDataFromAlpaca(symbol: string, options: any) {
   };
 }
 
+export const dynamic = "force-dynamic"; // server function
+export const maxDuration = 10; // seconds safeguard on Vercel
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const symbol = searchParams.get("symbol") || "LQD";
@@ -169,12 +174,14 @@ export async function GET(request: Request) {
   try {
     const marketData = await fetchMarketDataFromAPI(symbol);
     console.log("🎯 Final response:", marketData);
-    return NextResponse.json(marketData);
+    return new Response(JSON.stringify(marketData), {
+      headers: { "content-type": "application/json" },
+    });
   } catch (error) {
     console.error("❌ Error fetching market data:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch market data" },
-      { status: 500 },
-    );
+    return new Response(JSON.stringify({ error: "Failed to fetch market data" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
   }
 }
