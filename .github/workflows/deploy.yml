@@ -123,6 +123,14 @@ jobs:
 
           jq -Rs '{commands: [.]}' cmd.txt > params.json
 
+      - name: Check EC2 instance status
+        run: |
+          echo "Checking EC2 instance status..."
+          aws ec2 describe-instances \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text
+
       - name: Run deploy script via SSM (with live logs)
         run: |
           CID=$(aws ssm send-command \
@@ -130,6 +138,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "CI deploy" \
             --parameters file://params.json \
+            --timeout-seconds 1800 \
             --query "Command.CommandId" \
             --output text)
 
