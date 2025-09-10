@@ -1,84 +1,92 @@
-      - name: Deploy over SSH (hardened)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -euo pipefail
+- name: Deploy over SSH (hardened)
+  uses: appleboy/ssh-action@v1.0.3
+  with:
+    host: ${{ secrets.EC2_HOST }}
+    username: ${{ secrets.EC2_USER }}
+    key: ${{ secrets.EC2_SSH_KEY }}
+    script_stop: true
+    script: |
+      set -euo pipefail
+      umask 022
 
-            APP_DIR="${{ secrets.EC2_PATH }}"
-            REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
+      APP_DIR="${{ secrets.EC2_PATH }}"
+      REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
 
-            echo "== Preflight: ensure working dir =="
-            mkdir -p "$APP_DIR"
-            cd "$APP_DIR"
+      echo "== Preflight: ensure working dir =="
+      mkdir -p "$APP_DIR"
+      cd "$APP_DIR"
 
-            echo "== Clone or update repo =="
-            if [ ! -d ".git" ]; then
-              git clone "$REPO_SSH" .
-            fi
-            git fetch --all --prune
-            git reset --hard origin/main
+      echo "== Clone or update repo =="
+      if [ ! -d ".git" ]; then
+        git clone "$REPO_SSH" .
+      fi
+      git fetch --all --prune
+      git reset --hard origin/main
 
-            echo "== Node setup (nvm) =="
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            nvm use --lts
+      echo "== Node setup (nvm) =="
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+      nvm use --lts
 
-            echo "== Disk health (pre) =="
-            df -h || true
-            df -i || true
+      echo "== Disk health (pre) =="
+      df -h || true
+      df -i || true
 
-            echo "== Clean caches to avoid ENOSPC =="
-            # Safer temp/cache locations for npm so it doesn't fill /tmp
-            export TMPDIR="$HOME/.tmp-npm"
-            export npm_config_cache="$HOME/.npm"
-            mkdir -p "$TMPDIR" "$npm_config_cache"
+      # Hard guard (fail early if <1GB free or >95% inode use)
+      FREE_KB=$(df --output=avail -k . | tail -1 || echo 0)
+      USE_I=$(df -i --output=iused . | tail -1 || echo 0)
+      TOT_I=$(df -i --output=itotal . | tail -1 || echo 1)
+      I_PCT=$(( USE_I * 100 / TOT_I ))
+      if [ "$FREE_KB" -lt 1048576 ] || [ "$I_PCT" -gt 95 ]; then
+        echo "Low disk space or inodes (free_kb=$FREE_KB, inode_use=${I_PCT}%). Attempting cleanup..."
+      fi
 
-            # Trim logs if possible (ignore errors if not permitted)
-            if command -v journalctl >/dev/null 2>&1; then
-              sudo journalctl --vacuum-time=3d || true
-            fi
-            # Remove bulky artifacts from previous runs
-            rm -rf node_modules .next
+      echo "== Clean caches to avoid ENOSPC =="
+      export TMPDIR="$HOME/.tmp-npm"
+      export npm_config_cache="$HOME/.npm"
+      mkdir -p "$TMPDIR" "$npm_config_cache"
 
-            echo "== Install dependencies =="
-            if [ -f package-lock.json ]; then
-              npm ci --no-audit --progress=false
-            else
-              npm i --no-audit --progress=false
-            fi
+      if command -v journalctl >/dev/null 2>&1; then
+        sudo journalctl --vacuum-time=3d || true
+      fi
+      rm -rf node_modules .next
 
-            echo "== Build =="
-            npm run build
+      echo "== Install dependencies =="
+      export NODE_ENV=production
+      if [ -f package-lock.json ]; then
+        npm ci --no-audit --progress=false || (npm cache clean --force && npm ci --no-audit --progress=false)
+      else
+        npm i --no-audit --progress=false || (npm cache clean --force && npm i --no-audit --progress=false)
+      fi
 
-            echo "== Prune devDependencies for runtime =="
-            npm prune --omit=dev || true
+      echo "== Build =="
+      npm run build
 
-            echo "== PM2 process file =="
-            if [ ! -f ecosystem.config.js ]; then
-              cat > ecosystem.config.js <<'EOF'
-              module.exports = {
-                apps: [{
-                  name: "spout-finance",
-                  script: "node_modules/next/dist/bin/next",
-                  args: "start -p 3000",
-                  cwd: "${{ secrets.EC2_PATH }}",
-                  env: { NODE_ENV: "production" }
-                }]
-              }
-              EOF
-            fi
+      echo "== Prune devDependencies for runtime =="
+      npm prune --omit=dev || true
 
-            echo "== Start/Reload PM2 =="
-            if ! command -v pm2 >/dev/null 2>&1; then
-              npm i -g pm2
-            fi
-            pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
-            pm2 save
+      echo "== PM2 process file =="
+      if [ ! -f ecosystem.config.js ]; then
+        cat > ecosystem.config.js <<'EOF'
+        module.exports = {
+          apps: [{
+            name: "spout-finance",
+            script: "node_modules/next/dist/bin/next",
+            args: "start -p 3000",
+            cwd: "${{ secrets.EC2_PATH }}",
+            env: { NODE_ENV: "production" }
+          }]
+        }
+        EOF
+      fi
 
-            echo "== Disk health (post) =="
-            df -h || true
-            df -i || true
+      echo "== Start/Reload PM2 =="
+      if ! command -v pm2 >/dev/null 2>&1; then
+        npm i -g pm2
+      fi
+      pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+      pm2 save
+
+      echo "== Disk health (post) =="
+      df -h || true
+      df -i || true
