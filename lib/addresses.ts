@@ -19,7 +19,12 @@ export const contractaddresses = {
     84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Base Sepolia
     688688: "0x72df0bcd7276f2dFbAc900D1CE63c272C4BCcCED", // Pharos Testnet
   },
+  // Legacy key retained for backward compatibility
   rwatoken: {
+    84532: "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB", // Base Sepolia
+    688688: "0x54b753555853ce22f66Ac8CB8e324EB607C4e4eE", // Pharos Testnet
+  },
+  SpoutLQDtoken: {
     84532: "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB", // Base Sepolia
     688688: "0x54b753555853ce22f66Ac8CB8e324EB607C4e4eE", // Pharos Testnet
   },
@@ -38,6 +43,14 @@ import { useChainId } from "wagmi";
 export function useContractAddress(contract: keyof typeof contractaddresses) {
   const chainId = useChainId();
   console.log("current chainID:", chainId);
-  const mapping = contractaddresses[contract] as Record<number, string>;
-  return mapping[chainId];
+  const mapping = contractaddresses[contract] as Record<number, string> | undefined;
+  if (!mapping) {
+    console.error(`Unknown contract mapping for key: ${String(contract)}`);
+    return undefined as any;
+  }
+  const value = mapping[chainId];
+  if (!value) {
+    console.error(`No address for chainId ${chainId} in mapping ${String(contract)}`);
+  }
+  return value as any;
 }

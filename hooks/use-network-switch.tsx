@@ -1,5 +1,4 @@
 import { useAccount, useSwitchChain } from "wagmi";
-import { baseSepolia } from "viem/chains";
 import { pharos } from "@/lib/chainconfigs/pharos";
 export const useNetworkSwitch = () => {
   const { chainId } = useAccount();
