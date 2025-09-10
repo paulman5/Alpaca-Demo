@@ -1,4 +1,4 @@
-- name: Deploy over SSH (hardened)
+- name: Deploy over SSH (self-healing, pre-clone cleanup)
   uses: appleboy/ssh-action@v1.0.3
   with:
     host: ${{ secrets.EC2_HOST }}
@@ -12,43 +12,63 @@
       APP_DIR="${{ secrets.EC2_PATH }}"
       REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
 
-      echo "== Preflight: ensure working dir =="
+      echo "== Ensure app dir exists =="
       mkdir -p "$APP_DIR"
-      cd "$APP_DIR"
 
-      echo "== Clone or update repo =="
-      if [ ! -d ".git" ]; then
-        git clone "$REPO_SSH" .
+      echo "== Pre-clone cleanup to avoid ENOSPC =="
+      # Global cleanup first (logs, tmp)
+      if command -v journalctl >/dev/null 2>&1; then
+        sudo journalctl --vacuum-time=3d || true
       fi
-      git fetch --all --prune
-      git reset --hard origin/main
+      sudo rm -rf /var/log/*.gz /var/log/*.[0-9] /tmp/* || true
+
+      # App-specific bulky dirs (even before git exists)
+      rm -rf "$APP_DIR/node_modules" "$APP_DIR/.next" || true
+      rm -rf "$HOME/.npm/_cacache" "$HOME/.cache" || true
+
+      echo "== Disk health (pre) =="
+      df -h || true
+      df -i || true
+
+      echo "== Clone or update repo (shallow) =="
+      if [ ! -d "$APP_DIR/.git" ]; then
+        rm -rf "$APP_DIR"
+        mkdir -p "$APP_DIR"
+        git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+      else
+        cd "$APP_DIR"
+        # If repo is corrupted due to previous ENOSPC, reclone
+        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+          cd ..
+          rm -rf "$APP_DIR"
+          mkdir -p "$APP_DIR"
+          git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+          cd "$APP_DIR"
+        else
+          git fetch --depth=1 origin main || {
+            echo "Fetch failed (likely due to previous corruption). Recloning..."
+            cd ..
+            rm -rf "$APP_DIR"
+            mkdir -p "$APP_DIR"
+            git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+            cd "$APP_DIR"
+          }
+          git checkout -f main
+          git reset --hard origin/main
+        fi
+      fi
 
       echo "== Node setup (nvm) =="
       export NVM_DIR="$HOME/.nvm"
       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
       nvm use --lts
 
-      echo "== Disk health (pre) =="
-      df -h || true
-      df -i || true
-
-      # Hard guard (fail early if <1GB free or >95% inode use)
-      FREE_KB=$(df --output=avail -k . | tail -1 || echo 0)
-      USE_I=$(df -i --output=iused . | tail -1 || echo 0)
-      TOT_I=$(df -i --output=itotal . | tail -1 || echo 1)
-      I_PCT=$(( USE_I * 100 / TOT_I ))
-      if [ "$FREE_KB" -lt 1048576 ] || [ "$I_PCT" -gt 95 ]; then
-        echo "Low disk space or inodes (free_kb=$FREE_KB, inode_use=${I_PCT}%). Attempting cleanup..."
-      fi
-
-      echo "== Clean caches to avoid ENOSPC =="
+      echo "== Safer npm temp/cache =="
       export TMPDIR="$HOME/.tmp-npm"
       export npm_config_cache="$HOME/.npm"
       mkdir -p "$TMPDIR" "$npm_config_cache"
 
-      if command -v journalctl >/dev/null 2>&1; then
-        sudo journalctl --vacuum-time=3d || true
-      fi
+      echo "== Clean previous artifacts =="
       rm -rf node_modules .next
 
       echo "== Install dependencies =="
