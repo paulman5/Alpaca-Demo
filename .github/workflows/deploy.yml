@@ -1,112 +1,115 @@
-- name: Deploy over SSH (self-healing, pre-clone cleanup)
-  uses: appleboy/ssh-action@v1.0.3
-  with:
-    host: ${{ secrets.EC2_HOST }}
-    username: ${{ secrets.EC2_USER }}
-    key: ${{ secrets.EC2_SSH_KEY }}
-    script_stop: true
-    script: |
-      set -euo pipefail
-      umask 022
+name: Deploy via SSM
 
-      APP_DIR="${{ secrets.EC2_PATH }}"
-      REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
+on:
+  push:
+    branches: ["main"]
 
-      echo "== Ensure app dir exists =="
-      mkdir -p "$APP_DIR"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }} # eu-north-1 in your secrets
 
-      echo "== Pre-clone cleanup to avoid ENOSPC =="
-      # Global cleanup first (logs, tmp)
-      if command -v journalctl >/dev/null 2>&1; then
-        sudo journalctl --vacuum-time=3d || true
-      fi
-      sudo rm -rf /var/log/*.gz /var/log/*.[0-9] /tmp/* || true
+      - name: Run deploy script via SSM
+        run: |
+          # Build a single script and send it to SSM (avoids JSON/YAML quoting hell)
+          cat > deploy.sh <<'SCRIPT'
+          set -euo pipefail
+          umask 022
 
-      # App-specific bulky dirs (even before git exists)
-      rm -rf "$APP_DIR/node_modules" "$APP_DIR/.next" || true
-      rm -rf "$HOME/.npm/_cacache" "$HOME/.cache" || true
+          APP_DIR="${{ secrets.EC2_PATH }}"
+          REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
 
-      echo "== Disk health (pre) =="
-      df -h || true
-      df -i || true
-
-      echo "== Clone or update repo (shallow) =="
-      if [ ! -d "$APP_DIR/.git" ]; then
-        rm -rf "$APP_DIR"
-        mkdir -p "$APP_DIR"
-        git clone --depth=1 "$REPO_SSH" "$APP_DIR"
-      else
-        cd "$APP_DIR"
-        # If repo is corrupted due to previous ENOSPC, reclone
-        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-          cd ..
-          rm -rf "$APP_DIR"
+          # Pre-clean to avoid ENOSPC
+          if command -v journalctl >/dev/null 2>&1; then
+            sudo journalctl --vacuum-time=3d || true
+          fi
+          sudo rm -rf /var/log/*.gz /var/log/*.[0-9] /tmp/* || true
+          rm -rf "$HOME/.npm/_cacache" "$HOME/.cache" || true
+          rm -rf "$APP_DIR/node_modules" "$APP_DIR/.next" 2>/dev/null || true
           mkdir -p "$APP_DIR"
-          git clone --depth=1 "$REPO_SSH" "$APP_DIR"
-          cd "$APP_DIR"
-        else
-          git fetch --depth=1 origin main || {
-            echo "Fetch failed (likely due to previous corruption). Recloning..."
-            cd ..
+
+          # Shallow (re)clone with self-heal
+          if [ ! -d "$APP_DIR/.git" ]; then
             rm -rf "$APP_DIR"
             mkdir -p "$APP_DIR"
             git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+          else
             cd "$APP_DIR"
-          }
-          git checkout -f main
-          git reset --hard origin/main
-        fi
-      fi
+            if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+              cd ..
+              rm -rf "$APP_DIR"
+              mkdir -p "$APP_DIR"
+              git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+              cd "$APP_DIR"
+            else
+              git fetch --depth=1 origin main || {
+                cd ..
+                rm -rf "$APP_DIR"
+                mkdir -p "$APP_DIR"
+                git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+                cd "$APP_DIR"
+              }
+              git checkout -f main
+              git reset --hard origin/main
+            fi
+          fi
 
-      echo "== Node setup (nvm) =="
-      export NVM_DIR="$HOME/.nvm"
-      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-      nvm use --lts
+          # Node setup
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm use --lts
 
-      echo "== Safer npm temp/cache =="
-      export TMPDIR="$HOME/.tmp-npm"
-      export npm_config_cache="$HOME/.npm"
-      mkdir -p "$TMPDIR" "$npm_config_cache"
+          # npm temp/cache in home
+          export TMPDIR="$HOME/.tmp-npm"
+          export npm_config_cache="$HOME/.npm"
+          mkdir -p "$TMPDIR" "$npm_config_cache"
+          export NODE_ENV=production
 
-      echo "== Clean previous artifacts =="
-      rm -rf node_modules .next
+          # Install & build
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --progress=false || (npm cache clean --force && npm ci --no-audit --progress=false)
+          else
+            npm i --no-audit --progress=false || (npm cache clean --force && npm i --no-audit --progress=false)
+          fi
+          npm run build
+          npm prune --omit=dev || true
 
-      echo "== Install dependencies =="
-      export NODE_ENV=production
-      if [ -f package-lock.json ]; then
-        npm ci --no-audit --progress=false || (npm cache clean --force && npm ci --no-audit --progress=false)
-      else
-        npm i --no-audit --progress=false || (npm cache clean --force && npm i --no-audit --progress=false)
-      fi
+          # PM2
+          if ! command -v pm2 >/dev/null 2>&1; then
+            npm i -g pm2
+          fi
+          if [ ! -f ecosystem.config.js ]; then
+            cat > ecosystem.config.js <<'EOF'
+            module.exports = {
+              apps: [{
+                name: "spout-finance",
+                script: "node_modules/next/dist/bin/next",
+                args: "start -p 3000",
+                cwd: "${{ secrets.EC2_PATH }}",
+                env: { NODE_ENV: "production" }
+              }]
+            }
+            EOF
+          fi
 
-      echo "== Build =="
-      npm run build
+          pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+          pm2 save
+          SCRIPT
 
-      echo "== Prune devDependencies for runtime =="
-      npm prune --omit=dev || true
+          # Send the script to SSM and execute
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "CI deploy" \
+            --parameters 'commands=["bash -lc '\''cat > /tmp/deploy.sh <<\"EOS\"\n'"$(sed 's/\\/\\\\/g' deploy.sh | sed "s/'/'\"'\"'/g")"'\nEOS\nbash /tmp/deploy.sh'\''"]' \
+            --query "Command.CommandId" --output text > command_id.txt
 
-      echo "== PM2 process file =="
-      if [ ! -f ecosystem.config.js ]; then
-        cat > ecosystem.config.js <<'EOF'
-        module.exports = {
-          apps: [{
-            name: "spout-finance",
-            script: "node_modules/next/dist/bin/next",
-            args: "start -p 3000",
-            cwd: "${{ secrets.EC2_PATH }}",
-            env: { NODE_ENV: "production" }
-          }]
-        }
-        EOF
-      fi
-
-      echo "== Start/Reload PM2 =="
-      if ! command -v pm2 >/dev/null 2>&1; then
-        npm i -g pm2
-      fi
-      pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
-      pm2 save
-
-      echo "== Disk health (post) =="
-      df -h || true
-      df -i || true
+          CID=$(cat command_id.txt)
+          aws ssm wait command-executed --command-id "$CID" --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+          aws ssm list-command-invocations --command-id "$CID" --details --output text
