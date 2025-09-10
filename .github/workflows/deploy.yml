@@ -13,11 +13,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }} # eu-north-1 in your secrets
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Run deploy script via SSM
         run: |
-          # Build a single script and send it to SSM (avoids JSON/YAML quoting hell)
+          # 1) Write the deploy script plainly (no escaping headaches)
           cat > deploy.sh <<'SCRIPT'
           set -euo pipefail
           umask 022
@@ -25,7 +25,6 @@ jobs:
           APP_DIR="${{ secrets.EC2_PATH }}"
           REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
 
-          # Pre-clean to avoid ENOSPC
           if command -v journalctl >/dev/null 2>&1; then
             sudo journalctl --vacuum-time=3d || true
           fi
@@ -81,7 +80,7 @@ jobs:
           npm prune --omit=dev || true
 
           # PM2
-          if ! command -v pm2 >/dev/null 2>&1; then
+          if ! command -v pm2 >/dev/null 2%; then
             npm i -g pm2
           fi
           if [ ! -f ecosystem.config.js ]; then
@@ -102,12 +101,17 @@ jobs:
           pm2 save
           SCRIPT
 
-          # Send the script to SSM and execute
+          # 2) Build a single shell command that uploads & runs the script on the instance
+          CMD=$'bash -lc '\''cat > /tmp/deploy.sh << "EOS"\n'"$(cat deploy.sh | sed 's/\\/\\\\/g; s/'"'"'/'"'"'"'"'"'"'"'/g')"'\nEOS\nbash /tmp/deploy.sh'\'''
+
+          # 3) JSON-encode with jq and pass as file to AWS CLI
+          jq -n --arg cmd "$CMD" '{commands: [$cmd]}' > params.json
+
           aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "CI deploy" \
-            --parameters 'commands=["bash -lc '\''cat > /tmp/deploy.sh <<\"EOS\"\n'"$(sed 's/\\/\\\\/g' deploy.sh | sed "s/'/'\"'\"'/g")"'\nEOS\nbash /tmp/deploy.sh'\''"]' \
+            --parameters file://params.json \
             --query "Command.CommandId" --output text > command_id.txt
 
           CID=$(cat command_id.txt)
