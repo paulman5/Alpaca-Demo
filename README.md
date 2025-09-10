@@ -2,7 +2,7 @@
 
 A comprehensive decentralized finance (DeFi) trading platform built with Next.js, featuring confidential trading, KYC verification, proof of reserve, and **ERC3643 compliant tokenized securities**.
 
-## 🚀 Features.
+## 🚀 Features
 
 ### Core Trading Features
 
@@ -109,7 +109,7 @@ A comprehensive decentralized finance (DeFi) trading platform built with Next.js
 - **ID Factory**: `0x123...` (KYC identity management for ERC3643 compliance)
 - **OnChain ID**: `0x456...` (User identity contracts required for ERC3643)
 
-## 🔧 Smart Contract Integration
+## 🔧 Smart Contract Integration.
 
 ### ERC3643 Compliant Trading Flow
 
