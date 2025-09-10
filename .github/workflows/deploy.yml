@@ -19,7 +19,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           # remove the next line entirely if your key has NO passphrase
-          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script_stop: true
           script: |
             set -e
