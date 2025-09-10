@@ -107,13 +107,30 @@ jobs:
           # Install & build
           echo "== Installing dependencies =="
           if [ -f package-lock.json ]; then
-            npm ci --no-audit --progress=false || (npm cache clean --force && npm ci --no-audit --progress=false)
+            echo "Found package-lock.json, running npm ci..."
+            npm ci --no-audit --progress=false || {
+              echo "npm ci failed, cleaning cache and retrying..."
+              npm cache clean --force
+              npm ci --no-audit --progress=false
+            }
           else
-            npm i --no-audit --progress=false || (npm cache clean --force && npm i --no-audit --progress=false)
+            echo "No package-lock.json found, running npm install..."
+            npm i --no-audit --progress=false || {
+              echo "npm install failed, cleaning cache and retrying..."
+              npm cache clean --force
+              npm i --no-audit --progress=false
+            }
           fi
 
           echo "== Building application =="
-          npm run build
+          npm run build || {
+            echo "Build failed, checking for errors..."
+            echo "Node version: $(node --version)"
+            echo "NPM version: $(npm --version)"
+            echo "Available memory: $(free -h)"
+            echo "Disk space: $(df -h .)"
+            exit 1
+          }
           echo "== Build completed =="
           
           echo "== Pruning dev dependencies =="
@@ -146,10 +163,14 @@ jobs:
           pm2 save
           echo "== PM2 setup completed =="
 
+          echo "== Final status check =="
+          pm2 status
           echo "== Disk (post) =="
           df -h || true
           echo "== Inodes (post) =="
           df -i || true
+          
+          echo "== Deployment completed successfully =="
           EOS
 
       - name: Wrap script into SSM parameters
