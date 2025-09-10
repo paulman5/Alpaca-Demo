@@ -49,6 +49,11 @@ jobs:
           node --version || echo "Node version check failed"
           npm --version || echo "NPM version check failed"
 
+          echo "== Environment variables =="
+          echo "NODE_ENV: $NODE_ENV"
+          echo "PATH: $PATH"
+          echo "HOME: $HOME"
+
           # Pre-clean
           if command -v journalctl >/dev/null 2>&1; then
             sudo journalctl --vacuum-time=3d || true
@@ -79,14 +84,25 @@ jobs:
           cd "$APP_DIR"
 
           # Node setup
+          echo "== Setting up Node.js =="
           export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          nvm use --lts
+          if [ -s "$NVM_DIR/nvm.sh" ]; then
+            echo "Loading NVM..."
+            . "$NVM_DIR/nvm.sh"
+            echo "Using LTS Node version..."
+            nvm use --lts || nvm install --lts
+          else
+            echo "NVM not found, using system Node.js"
+          fi
 
           export TMPDIR="$HOME/.tmp-npm"
           export npm_config_cache="$HOME/.npm"
           mkdir -p "$TMPDIR" "$npm_config_cache"
           export NODE_ENV=production
+          
+          echo "== Node.js setup completed =="
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
 
           # Install & build
           echo "== Installing dependencies =="
