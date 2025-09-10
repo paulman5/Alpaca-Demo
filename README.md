@@ -2,7 +2,7 @@
 
 A comprehensive decentralized finance (DeFi) trading platform built with Next.js, featuring confidential trading, KYC verification, proof of reserve, and **ERC3643 compliant tokenized securities**.
 
-## 🚀 Features
+## 🚀 Features.
 
 ### Core Trading Features
 
