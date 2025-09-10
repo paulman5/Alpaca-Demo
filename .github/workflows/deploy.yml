@@ -15,6 +15,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Ensure jq installed
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Run deploy script via SSM
         run: |
           # 1) Write the deploy script plainly (no escaping headaches)
@@ -25,6 +28,7 @@ jobs:
           APP_DIR="${{ secrets.EC2_PATH }}"
           REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
 
+          # Pre-clean to avoid ENOSPC
           if command -v journalctl >/dev/null 2>&1; then
             sudo journalctl --vacuum-time=3d || true
           fi
@@ -80,7 +84,7 @@ jobs:
           npm prune --omit=dev || true
 
           # PM2
-          if ! command -v pm2 >/dev/null 2%; then
+          if ! command -v pm2 >/dev/null 2>&1; then
             npm i -g pm2
           fi
           if [ ! -f ecosystem.config.js ]; then
@@ -101,12 +105,18 @@ jobs:
           pm2 save
           SCRIPT
 
-          # 2) Build a single shell command that uploads & runs the script on the instance
-          CMD=$'bash -lc '\''cat > /tmp/deploy.sh << "EOS"\n'"$(cat deploy.sh | sed 's/\\/\\\\/g; s/'"'"'/'"'"'"'"'"'"'"'/g')"'\nEOS\nbash /tmp/deploy.sh'\'''
+          # 2) Wrap a single SSM command by reading the script and JSON-encoding it safely
+          # Build the remote command: write the script to /tmp and execute it
+          {
+            printf "bash -lc 'cat > /tmp/deploy.sh <<\"EOS\"\n"
+            cat deploy.sh
+            printf "\nEOS\nbash /tmp/deploy.sh'\n"
+          } > cmd.txt
 
-          # 3) JSON-encode with jq and pass as file to AWS CLI
-          jq -n --arg cmd "$CMD" '{commands: [$cmd]}' > params.json
+          # Create parameters JSON: { "commands": ["<entire command>"] }
+          jq -Rs '{commands: [.]}' cmd.txt > params.json
 
+          # 3) Send to SSM and wait
           aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
