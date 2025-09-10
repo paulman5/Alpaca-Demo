@@ -8,7 +8,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <ProfileHeader />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Loading....</div>}>
         <ProfileTabs />
       </Suspense>
     </div>
