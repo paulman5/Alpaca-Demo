@@ -1,51 +1,63 @@
-name: Deploy to EC2
-
-on:
-  push:
-    branches: [ "main" ]   # change if your default branch is different
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout (not strictly needed for SSH-only deploys)
-        uses: actions/checkout@v4
-
-      - name: Deploy over SSH
+      - name: Deploy over SSH (hardened)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          # remove the next line entirely if your key has NO passphrase
           script_stop: true
           script: |
-            set -e
-            cd ${{ secrets.EC2_PATH }}
+            set -euo pipefail
 
-            # First-time clone (idempotent)
+            APP_DIR="${{ secrets.EC2_PATH }}"
+            REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
+
+            echo "== Preflight: ensure working dir =="
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            echo "== Clone or update repo =="
             if [ ! -d ".git" ]; then
-              git clone git@github.com:SpoutFinance/app-interface.git .
+              git clone "$REPO_SSH" .
             fi
-
             git fetch --all --prune
             git reset --hard origin/main
 
-            # Load nvm & Node for non-interactive shell
+            echo "== Node setup (nvm) =="
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             nvm use --lts
 
-            # Install & build
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm i
+            echo "== Disk health (pre) =="
+            df -h || true
+            df -i || true
+
+            echo "== Clean caches to avoid ENOSPC =="
+            # Safer temp/cache locations for npm so it doesn't fill /tmp
+            export TMPDIR="$HOME/.tmp-npm"
+            export npm_config_cache="$HOME/.npm"
+            mkdir -p "$TMPDIR" "$npm_config_cache"
+
+            # Trim logs if possible (ignore errors if not permitted)
+            if command -v journalctl >/dev/null 2>&1; then
+              sudo journalctl --vacuum-time=3d || true
             fi
+            # Remove bulky artifacts from previous runs
+            rm -rf node_modules .next
+
+            echo "== Install dependencies =="
+            if [ -f package-lock.json ]; then
+              npm ci --no-audit --progress=false
+            else
+              npm i --no-audit --progress=false
+            fi
+
+            echo "== Build =="
             npm run build
 
-            # PM2 start/reload
+            echo "== Prune devDependencies for runtime =="
+            npm prune --omit=dev || true
+
+            echo "== PM2 process file =="
             if [ ! -f ecosystem.config.js ]; then
               cat > ecosystem.config.js <<'EOF'
               module.exports = {
@@ -60,5 +72,13 @@ jobs:
               EOF
             fi
 
+            echo "== Start/Reload PM2 =="
+            if ! command -v pm2 >/dev/null 2>&1; then
+              npm i -g pm2
+            fi
             pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
             pm2 save
+
+            echo "== Disk health (post) =="
+            df -h || true
+            df -i || true
