@@ -31,10 +31,23 @@ jobs:
           # Use HTTPS + PAT to avoid SSH key setup on the instance
           REPO_HTTPS="https://x-access-token:${{ secrets.GH_PAT }}@github.com/SpoutFinance/app-interface.git"
 
+          echo "== Debug info =="
+          whoami
+          pwd
+          ls -la
+          echo "== End debug =="
+
           echo "== Disk =="
           df -h || true
           echo "== Inodes =="
           df -i || true
+
+          echo "== Checking required tools =="
+          which node || echo "Node not found"
+          which npm || echo "NPM not found"
+          which git || echo "Git not found"
+          node --version || echo "Node version check failed"
+          npm --version || echo "NPM version check failed"
 
           # Pre-clean
           if command -v journalctl >/dev/null 2>&1; then
@@ -76,21 +89,29 @@ jobs:
           export NODE_ENV=production
 
           # Install & build
+          echo "== Installing dependencies =="
           if [ -f package-lock.json ]; then
             npm ci --no-audit --progress=false || (npm cache clean --force && npm ci --no-audit --progress=false)
           else
             npm i --no-audit --progress=false || (npm cache clean --force && npm i --no-audit --progress=false)
           fi
 
+          echo "== Building application =="
           npm run build
+          echo "== Build completed =="
+          
+          echo "== Pruning dev dependencies =="
           npm prune --omit=dev || true
 
           # PM2
+          echo "== Setting up PM2 =="
           if ! command -v pm2 >/dev/null 2>&1; then
+            echo "Installing PM2 globally..."
             npm i -g pm2
           fi
 
           if [ ! -f ecosystem.config.js ]; then
+            echo "Creating ecosystem.config.js..."
             cat > ecosystem.config.js <<'EOF'
             module.exports = {
               apps: [{
@@ -104,8 +125,10 @@ jobs:
             EOF
           fi
 
+          echo "== Starting/Reloading PM2 =="
           pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
           pm2 save
+          echo "== PM2 setup completed =="
 
           echo "== Disk (post) =="
           df -h || true
