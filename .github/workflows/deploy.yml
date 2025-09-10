@@ -2,11 +2,12 @@ name: Deploy via SSM
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -15,60 +16,41 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Ensure jq installed
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Run deploy script via SSM
+      - name: Write deploy script
         run: |
-          # 1) Write the deploy script plainly (no escaping headaches)
-          cat > deploy.sh <<'SCRIPT'
+          cat > deploy.sh <<'EOS'
           set -euo pipefail
           umask 022
+
+          echo "== Running deploy script on EC2 =="
 
           APP_DIR="${{ secrets.EC2_PATH }}"
           REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
 
-          # Pre-clean to avoid ENOSPC
-          if command -v journalctl >/dev/null 2>&1; then
-            sudo journalctl --vacuum-time=3d || true
-          fi
-          sudo rm -rf /var/log/*.gz /var/log/*.[0-9] /tmp/* || true
+          # Pre-clean
+          sudo rm -rf /tmp/* || true
           rm -rf "$HOME/.npm/_cacache" "$HOME/.cache" || true
-          rm -rf "$APP_DIR/node_modules" "$APP_DIR/.next" 2>/dev/null || true
+
           mkdir -p "$APP_DIR"
 
-          # Shallow (re)clone with self-heal
+          # Clone or update repo
           if [ ! -d "$APP_DIR/.git" ]; then
             rm -rf "$APP_DIR"
             mkdir -p "$APP_DIR"
             git clone --depth=1 "$REPO_SSH" "$APP_DIR"
           else
             cd "$APP_DIR"
-            if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-              cd ..
-              rm -rf "$APP_DIR"
-              mkdir -p "$APP_DIR"
-              git clone --depth=1 "$REPO_SSH" "$APP_DIR"
-              cd "$APP_DIR"
-            else
-              git fetch --depth=1 origin main || {
-                cd ..
-                rm -rf "$APP_DIR"
-                mkdir -p "$APP_DIR"
-                git clone --depth=1 "$REPO_SSH" "$APP_DIR"
-                cd "$APP_DIR"
-              }
-              git checkout -f main
-              git reset --hard origin/main
-            fi
+            git fetch --depth=1 origin main
+            git checkout -f main
+            git reset --hard origin/main
           fi
+          cd "$APP_DIR"
 
           # Node setup
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
           nvm use --lts
 
-          # npm temp/cache in home
           export TMPDIR="$HOME/.tmp-npm"
           export npm_config_cache="$HOME/.npm"
           mkdir -p "$TMPDIR" "$npm_config_cache"
@@ -103,27 +85,51 @@ jobs:
 
           pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
           pm2 save
-          SCRIPT
+          EOS
 
-          # 2) Wrap a single SSM command by reading the script and JSON-encoding it safely
-          # Build the remote command: write the script to /tmp and execute it
+      - name: Wrap script into SSM parameters
+        run: |
           {
             printf "bash -lc 'cat > /tmp/deploy.sh <<\"EOS\"\n"
             cat deploy.sh
             printf "\nEOS\nbash /tmp/deploy.sh'\n"
           } > cmd.txt
 
-          # Create parameters JSON: { "commands": ["<entire command>"] }
           jq -Rs '{commands: [.]}' cmd.txt > params.json
 
-          # 3) Send to SSM and wait
-          aws ssm send-command \
+      - name: Run deploy script via SSM
+        run: |
+          CID=$(aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "CI deploy" \
             --parameters file://params.json \
-            --query "Command.CommandId" --output text > command_id.txt
+            --query "Command.CommandId" \
+            --output text)
 
-          CID=$(cat command_id.txt)
-          aws ssm wait command-executed --command-id "$CID" --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
-          aws ssm list-command-invocations --command-id "$CID" --details --output text
+          echo "CommandId=$CID"
+
+          # Poll until the command finishes, streaming logs
+          while true; do
+            OUT=$(aws ssm get-command-invocation \
+              --command-id "$CID" \
+              --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
+              --output json)
+
+            STATUS=$(echo "$OUT" | jq -r .Status)
+
+            echo "SSM status: $STATUS"
+            echo "---- STDOUT ----"
+            echo "$OUT" | jq -r .StandardOutputContent
+            echo "---- STDERR ----"
+            echo "$OUT" | jq -r .StandardErrorContent
+
+            if [ "$STATUS" = "Success" ]; then
+              echo "✅ Deploy succeeded"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+              echo "❌ Deploy failed"
+              exit 1
+            fi
