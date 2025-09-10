@@ -2,7 +2,7 @@ name: Deploy via SSM
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   deploy:
@@ -16,6 +16,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Ensure jq present
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Write deploy script
         run: |
           cat > deploy.sh <<'EOS'
@@ -25,22 +28,38 @@ jobs:
           echo "== Running deploy script on EC2 =="
 
           APP_DIR="${{ secrets.EC2_PATH }}"
-          REPO_SSH="git@github.com:SpoutFinance/app-interface.git"
+          # Use HTTPS + PAT to avoid SSH key setup on the instance
+          REPO_HTTPS="https://x-access-token:${{ secrets.GH_PAT }}@github.com/SpoutFinance/app-interface.git"
+
+          echo "== Disk =="
+          df -h || true
+          echo "== Inodes =="
+          df -i || true
 
           # Pre-clean
+          if command -v journalctl >/dev/null 2>&1; then
+            sudo journalctl --vacuum-time=3d || true
+          fi
           sudo rm -rf /tmp/* || true
           rm -rf "$HOME/.npm/_cacache" "$HOME/.cache" || true
 
           mkdir -p "$APP_DIR"
 
-          # Clone or update repo
+          # Clone or update repo (self-healing, shallow)
           if [ ! -d "$APP_DIR/.git" ]; then
             rm -rf "$APP_DIR"
             mkdir -p "$APP_DIR"
-            git clone --depth=1 "$REPO_SSH" "$APP_DIR"
+            git clone --depth=1 "$REPO_HTTPS" "$APP_DIR"
           else
             cd "$APP_DIR"
-            git fetch --depth=1 origin main
+            git remote set-url origin "$REPO_HTTPS"
+            git fetch --depth=1 origin main || {
+              cd ..
+              rm -rf "$APP_DIR"
+              mkdir -p "$APP_DIR"
+              git clone --depth=1 "$REPO_HTTPS" "$APP_DIR"
+              cd "$APP_DIR"
+            }
             git checkout -f main
             git reset --hard origin/main
           fi
@@ -62,6 +81,7 @@ jobs:
           else
             npm i --no-audit --progress=false || (npm cache clean --force && npm i --no-audit --progress=false)
           fi
+
           npm run build
           npm prune --omit=dev || true
 
@@ -69,6 +89,7 @@ jobs:
           if ! command -v pm2 >/dev/null 2>&1; then
             npm i -g pm2
           fi
+
           if [ ! -f ecosystem.config.js ]; then
             cat > ecosystem.config.js <<'EOF'
             module.exports = {
@@ -85,6 +106,11 @@ jobs:
 
           pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
           pm2 save
+
+          echo "== Disk (post) =="
+          df -h || true
+          echo "== Inodes (post) =="
+          df -i || true
           EOS
 
       - name: Wrap script into SSM parameters
@@ -97,7 +123,7 @@ jobs:
 
           jq -Rs '{commands: [.]}' cmd.txt > params.json
 
-      - name: Run deploy script via SSM
+      - name: Run deploy script via SSM (with live logs)
         run: |
           CID=$(aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
@@ -133,3 +159,6 @@ jobs:
               echo "❌ Deploy failed"
               exit 1
             fi
+
+            sleep 3
+          done
