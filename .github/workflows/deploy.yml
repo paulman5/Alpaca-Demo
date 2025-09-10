@@ -1,19 +1,15 @@
-3) Add the workflow to the repo
-
-Create .github/workflows/deploy.yml:
-
 name: Deploy to EC2
 
 on:
   push:
-    branches: [ "main" ]  # change if needed
+    branches: [ "main" ]   # change if your default branch is different
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout (not strictly needed for SSH-only deploys)
         uses: actions/checkout@v4
 
       - name: Deploy over SSH
@@ -22,7 +18,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }} # omit this line if your key has NO passphrase
+          # remove the next line entirely if your key has NO passphrase
+          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script_stop: true
           script: |
             set -e
@@ -36,13 +33,17 @@ jobs:
             git fetch --all --prune
             git reset --hard origin/main
 
-            # Load nvm & Node
+            # Load nvm & Node for non-interactive shell
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             nvm use --lts
 
             # Install & build
-            if [ -f package-lock.json ]; then npm ci; else npm i; fi
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm i
+            fi
             npm run build
 
             # PM2 start/reload
