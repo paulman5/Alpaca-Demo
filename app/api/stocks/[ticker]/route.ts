@@ -145,14 +145,23 @@ export async function GET(
 
     console.log("🔍 Requested stock data for:", ticker);
 
+    // Validate required env for upstream API
+    if (!ALPACA_API_KEY || !ALPACA_API_SECRET) {
+      return new Response(
+        JSON.stringify({ error: "Server misconfiguration: missing Alpaca API keys" }),
+        { status: 500 },
+      );
+    }
+
     const stockData = await fetchStockDataFromAPI(ticker);
     console.log("🎯 Final stock response for", ticker);
     return new Response(JSON.stringify(stockData));
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error fetching stock data:", error);
     return new Response(
       JSON.stringify({
         error: "Failed to fetch stock data",
+        details: typeof error?.message === "string" ? error.message : undefined,
       }),
       { status: 500 },
     );

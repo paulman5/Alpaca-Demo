@@ -5,7 +5,7 @@ export const pharos = {
   network: "pharos",
   nativeCurrency: {
     name: "Pharos Token",
-    symbol: "PHAR",
+    symbol: "PHRS",
     decimals: 18,
   },
   rpcUrls: {
