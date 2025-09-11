@@ -23,6 +23,7 @@ jobs:
         run: |
           cat > deploy.sh <<'EOS'
           set -euo pipefail
+          set -x
           umask 022
 
           echo "== Running deploy script on EC2 =="
@@ -219,6 +220,14 @@ jobs:
             echo "---- STDERR ----"
             echo "$OUT" | jq -r .StandardErrorContent
 
+            # Print plugin-level details for better diagnostics
+            echo "---- PLUGIN DETAILS ----"
+            aws ssm list-command-invocations \
+              --command-id "$CID" \
+              --details \
+              --query 'CommandInvocations[0].CommandPlugins[].{name:Name,status:Status,resp:ResponseCode,output:OutputUrl,stdErr:StandardErrorUrl}' \
+              --output table || true
+
             if [ "$STATUS" = "Success" ]; then
               echo "✅ Deploy succeeded"
               exit 0
@@ -226,6 +235,8 @@ jobs:
 
             if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
               echo "❌ Deploy failed"
+              # Fetch final detailed failure info
+              aws ssm list-command-invocations --command-id "$CID" --details --output json || true
               exit 1
             fi
 
