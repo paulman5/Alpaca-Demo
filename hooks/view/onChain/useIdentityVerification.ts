@@ -1,34 +1,11 @@
-import { useReadContract, useChainId } from "wagmi";
+import { useReadContract } from "wagmi";
 import { useContractAddress } from "@/lib/addresses";
-
-// Basic Identity Registry ABI with isVerified function
-const identityRegistryABI = [
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_userAddress",
-        type: "address",
-      },
-    ],
-    name: "isVerified",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+import tokenABI from "@/abi/token.json";
+import identityRegistryABI from "@/abi/identityregistry.json";
 
 export function useIdentityVerification(userAddress: string | undefined) {
-  const chainId = useChainId();
-
   // Get the RWA token address to access its identity registry
-  const rwaTokenAddress = useContractAddress("rwatoken");
+  const rwaTokenAddress = useContractAddress("SpoutLQDtoken");
 
   // First get the identity registry address from the RWA token
   const {
@@ -37,21 +14,7 @@ export function useIdentityVerification(userAddress: string | undefined) {
     error: registryError,
   } = useReadContract({
     address: rwaTokenAddress as `0x${string}`,
-    abi: [
-      {
-        inputs: [],
-        name: "identityRegistry",
-        outputs: [
-          {
-            internalType: "contract IIdentityRegistry",
-            name: "",
-            type: "address",
-          },
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-    ],
+    abi: tokenABI.abi,
     functionName: "identityRegistry",
   });
 
@@ -63,7 +26,7 @@ export function useIdentityVerification(userAddress: string | undefined) {
     refetch: refetchVerification,
   } = useReadContract({
     address: identityRegistryAddress as `0x${string}`,
-    abi: identityRegistryABI,
+    abi: identityRegistryABI.abi,
     functionName: "isVerified",
     args: userAddress ? [userAddress as `0x${string}`] : undefined,
     query: {

@@ -184,6 +184,14 @@ jobs:
 
           jq -Rs '{commands: [.]}' cmd.txt > params.json
 
+      - name: Upload deploy script to S3 (optional)
+        if: ${{ secrets.S3_BUCKET != '' }}
+        run: |
+          KEY="${{ secrets.S3_KEY }}"
+          if [ -z "$KEY" ]; then KEY="deploy/deploy.sh"; fi
+          echo "Uploading deploy.sh to s3://${{ secrets.S3_BUCKET }}/$KEY"
+          aws s3 cp deploy.sh "s3://${{ secrets.S3_BUCKET }}/$KEY" --sse AES256
+
       - name: Check EC2 instance status
         run: |
           echo "Checking EC2 instance status..."
@@ -194,14 +202,28 @@ jobs:
 
       - name: Run deploy script via SSM (with live logs)
         run: |
-          CID=$(aws ssm send-command \
-            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
-            --document-name "AWS-RunShellScript" \
-            --comment "CI deploy" \
-            --parameters file://params.json \
-            --timeout-seconds 1800 \
-            --query "Command.CommandId" \
-            --output text)
+          if [ -n "${{ secrets.S3_BUCKET }}" ]; then
+            KEY="${{ secrets.S3_KEY }}"; [ -z "$KEY" ] && KEY="deploy/deploy.sh"
+            echo "Using AWS-RunRemoteScript from s3://${{ secrets.S3_BUCKET }}/$KEY"
+            CID=$(aws ssm send-command \
+              --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+              --document-name "AWS-RunRemoteScript" \
+              --comment "CI deploy (remote script)" \
+              --parameters "sourceType=S3,sourceInfo={\\\"path\\\":\\\"s3://${{ secrets.S3_BUCKET }}/$KEY\\\"},commandLine=bash deploy.sh" \
+              --timeout-seconds 1800 \
+              --query "Command.CommandId" \
+              --output text)
+          else
+            echo "Using AWS-RunShellScript inline"
+            CID=$(aws ssm send-command \
+              --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+              --document-name "AWS-RunShellScript" \
+              --comment "CI deploy" \
+              --parameters file://params.json \
+              --timeout-seconds 1800 \
+              --query "Command.CommandId" \
+              --output text)
+          fi
 
           echo "CommandId=$CID"
 

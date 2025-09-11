@@ -1,14 +1,9 @@
-import { useReadContract, useChainId } from "wagmi";
+import { useReadContract } from "wagmi";
 import erc3643ABI from "@/abi/erc3643.json";
-
-const tokenAddresses: Record<number, string> = {
-  84532: "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB", // Base Sepolia
-  688688: "0x54b753555853ce22f66Ac8CB8e324EB607C4e4eE", // Pharos Testnet
-};
+import { useContractAddress } from "@/lib/addresses";
 
 export function useTokenBalance(address: string | undefined) {
-  const chainId = useChainId();
-  const tokenAddress = tokenAddresses[chainId];
+  const tokenAddress = useContractAddress("SpoutLQDtoken");
 
   // Get decimals
   const { data: decimals } = useReadContract({

@@ -1,17 +1,11 @@
 "use client";
 
-import { useReadContract, useChainId } from "wagmi";
+import { useReadContract } from "wagmi";
 import erc20ABI from "@/abi/erc20.json";
-
-const usdcAddresses: Record<number, string> = {
-  84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Base Sepolia
-  688688: "0x72df0bcd7276f2dFbAc900D1CE63c272C4BCcCED", // Pharos Testnet
-};
+import { useContractAddress } from "@/lib/addresses";
 
 export function useUSDCTokenBalance(address: string | undefined) {
-  const chainId = useChainId();
-  console.log("chainId", chainId);
-  const usdcAddress = usdcAddresses[chainId];
+  const usdcAddress = useContractAddress("usdc");
 
   // Get decimals
   const { data: decimals } = useReadContract({

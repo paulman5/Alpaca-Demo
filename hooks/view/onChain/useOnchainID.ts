@@ -3,11 +3,12 @@
 import { useReadContract } from "wagmi";
 import idFactoryABI from "@/abi/idfactory.json";
 import onchainidABI from "@/abi/onchainid.json";
-import { ethers } from "ethers";
 import { AbiCoder, keccak256 } from "ethers";
 import { contractaddresses } from "@/lib/addresses";
 import { useChainId } from "wagmi";
 import { pharos } from "@/lib/chainconfigs/pharos";
+import identityRegistryABI from "@/abi/identityregistry.json";
+import tokenABI from "@/abi/token.json";
 import { useState, useEffect } from "react";
 
 export function useOnchainID({
@@ -66,21 +67,7 @@ export function useOnchainID({
     error: registryError,
   } = useReadContract({
     address: rwaTokenAddress as `0x${string}`,
-    abi: [
-      {
-        inputs: [],
-        name: "identityRegistry",
-        outputs: [
-          {
-            internalType: "contract IIdentityRegistry",
-            name: "",
-            type: "address",
-          },
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-    ],
+    abi: tokenABI.abi,
     functionName: "identityRegistry",
   });
 
@@ -93,27 +80,7 @@ export function useOnchainID({
     refetch: refetchVerification,
   } = useReadContract({
     address: identityRegistryAddress as `0x${string}`,
-    abi: [
-      {
-        inputs: [
-          {
-            internalType: "address",
-            name: "_userAddress",
-            type: "address",
-          },
-        ],
-        name: "isVerified",
-        outputs: [
-          {
-            internalType: "bool",
-            name: "",
-            type: "bool",
-          },
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-    ],
+    abi: identityRegistryABI.abi,
     functionName: "isVerified",
     args: canReadVerification ? [userAddress as `0x${string}`] : undefined,
     query: { enabled: canReadVerification },
