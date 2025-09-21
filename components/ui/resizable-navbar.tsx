@@ -135,7 +135,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
                 {item.icon}
                 {item.name}
               </span>
-              <span className="ml-2 px-2 py-1 text-xs bg-gray-100 rounded">
+              <span className="ml-2 px-2 py-1 text-xs bg-gray-100 rounded-sm">
                 Soon
               </span>
             </>
@@ -253,8 +253,8 @@ export const NavbarLogo = () => {
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
     >
       <Image src="/Whale.png" alt="logo" width={30} height={30} />
-      <span className="font-bold text-lg text-emerald-600 dark:text-white">
-        Spout Finance
+      <span className="font-bold text-lg text-teal-800 dark:text-white">
+        SPOUT
       </span>
     </Link>
   );

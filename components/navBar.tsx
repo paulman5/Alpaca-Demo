@@ -20,9 +20,9 @@ import {
 import { LogOut } from "lucide-react";
 import { signOut } from "@/lib/supabase/auth";
 const navItems = [
-  // { name: "Markets", link: "/app/markets", soon: true },
-  { name: "Trade", link: "/app/trade" },
-  { name: "Earn", link: "/app/earn", soon: true },
+  { name: "HOME", link: "/" },
+  { name: "ABOUT US", link: "/company" },
+  { name: "EARN", link: "/app/earn", soon: true },
 ];
 
 export default function Navbar() {
@@ -43,21 +43,19 @@ export default function Navbar() {
       <NavBody>
         <NavbarLogo />
         <NavItems items={navItems} />
-        {/*
         {!user && (
           <Link
             href="/auth/login"
             style={{ position: "relative", zIndex: 50 }}
-            className="px-4 py-2 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+            className="px-6 py-3 rounded-md bg-teal-700 text-white hover:bg-teal-800 transition-colors font-semibold"
           >
-            Login
+            Get Started
           </Link>
         )}
-        */}
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="px-4 py-2 z-50 rounded-2xl bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors focus:outline-none">
+              <button className="px-4 py-2 z-50 rounded-md bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors focus:outline-none">
                 {displayName}
               </button>
             </DropdownMenuTrigger>

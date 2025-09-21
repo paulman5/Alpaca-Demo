@@ -77,17 +77,17 @@ export function JoinMailingList() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="flex flex-col sm:flex-row gap-2 w-full max-w-xs mx-auto items-center"
+      className="flex flex-col sm:flex-row gap-3 w-full max-w-md mx-auto items-center"
     >
       {!joined && (
         <Input
           type="email"
-          placeholder="Join our mailing list"
+          placeholder="Enter your email to join our mailing list"
           value={email}
           onChange={handleEmailChange}
           onBlur={handleEmailBlur}
           autoComplete="email"
-          className={`flex-1 w-56 bg-white/80 border-slate-200 focus-visible:ring-emerald-600 ${
+          className={`flex-1 w-full bg-white border-gray-300 focus-visible:ring-teal-600 focus-visible:border-teal-600 rounded-xl px-4 py-3 text-base ${
             error ? "border-red-300 focus-visible:ring-red-400" : ""
           }`}
           disabled={loading}
@@ -105,7 +105,7 @@ export function JoinMailingList() {
           >
             <JoinButton
               type="submit"
-              className="bg-emerald-600 hover:bg-emerald-700 data-[hovered]:bg-emerald-700 text-white px-6 py-2 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-base"
               isDisabled={
                 loading || (email.length > 0 && !isValidEmail(email.trim()))
               }
@@ -117,14 +117,14 @@ export function JoinMailingList() {
       </AnimatePresence>
       {joined && (
         <div className="flex items-center justify-center w-full mt-2 flex-nowrap whitespace-nowrap">
-          <CheckCircle className="h-8 w-8 text-emerald-600 mr-2" />
-          <span className="text-emerald-700 font-semibold text-lg align-middle">
+          <CheckCircle className="h-8 w-8 text-teal-600 mr-2" />
+          <span className="text-teal-700 font-semibold text-lg align-middle">
             {message || "Already joined!"}
           </span>
         </div>
       )}
       {error && !joined && (
-        <div className="w-full text-center text-red-500 text-xs mt-2">
+        <div className="w-full text-center text-red-500 text-sm mt-2">
           {error}
         </div>
       )}
