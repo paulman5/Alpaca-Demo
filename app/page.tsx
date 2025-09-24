@@ -16,7 +16,8 @@ export default function HomePage() {
       <HeroSection />
 
       {/* Proof of Reserve Section */}
-      <section className="relative py-24 bg-gradient-to-b from-neutral-800 to-emerald-800 overflow-hidden">
+      <section className="relative py-24 w-full bg-white overflow-hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
         <ProofOfReserveSection />
 
         <ProofOfReserveCards />

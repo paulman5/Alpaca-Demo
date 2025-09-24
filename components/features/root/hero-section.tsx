@@ -14,8 +14,8 @@ export function HeroSection() {
       
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-20 flex flex-col items-center justify-center">
         {/* Main content area */}
-        <div className="text-center mb-16 w-full max-w-4xl">
-          <h1 className="text-3xl md:text-5xl font-serif font-bold text-teal-800 mb-8 tracking-tight leading-tight">
+        <div className="text-center mb-4 mt-20 w-full max-w-4xl">
+          <h1 className="text-3xl md:text-5xl font-serif font-medium text-teal-800 mb-8 tracking-tight leading-tight">
             The platform for what's next in decentralized investing.
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-12 font-light leading-relaxed max-w-3xl mx-auto">
@@ -24,7 +24,7 @@ export function HeroSection() {
         </div>
 
         {/* CTA Button */}
-        <div className="flex justify-center mb-16 w-full">
+        <div className="flex justify-center mb-12 w-full">
           <Link href="/app">
             <Button
               size="lg"
@@ -38,8 +38,8 @@ export function HeroSection() {
 
         {/* Mailing List Section */}
         <div className="w-full max-w-2xl mx-auto mb-20">
-          <div className="text-center mb-8">
-            <p className="text-base text-gray-700 font-medium">
+          <div className="text-center mb-4">
+            <p className="text-base text-gray-700 font-light">
               [ JOIN THE PLATFORM THAT'S MAKING TRADITIONAL FINANCE MORE EFFICIENT ]
             </p>
           </div>
