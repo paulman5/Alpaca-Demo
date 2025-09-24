@@ -25,11 +25,11 @@ export function HeroSection() {
         </div>
 
         {/* CTA Button */}
-        <div className="flex justify-center mb-12 w-full">
+        <div className="flex justify-center mb-20 w-full">
           <Link href="/app">
             <Button
               size="lg"
-              className="bg-teal-700 hover:bg-teal-800 text-white px-10 py-4 text-lg font-semibold rounded-md shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+              className="bg-teal-700 text-white px-10 py-4 text-lg font-semibold rounded-md shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:border-teal-800 border-2 border-teal-700 hover:!bg-teal-800"
             >
               Launch Platform
               <ArrowRight className="ml-3 h-5 w-5" />
