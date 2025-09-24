@@ -109,9 +109,9 @@ export function PartnerTicker() {
                   <Image
                     src={partner.src}
                     alt={partner.alt}
-                    width={100}
-                    height={60}
-                    className="h-16 w-auto object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105 opacity-70 hover:opacity-100"
+                    width={80}
+                    height={40}
+                    className="h-16 grayscale w-auto object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105 opacity-70 hover:opacity-100"
                     draggable={false}
                     style={{ userSelect: "none" }}
                   />

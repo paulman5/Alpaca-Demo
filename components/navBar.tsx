@@ -20,9 +20,9 @@ import {
 import { LogOut } from "lucide-react";
 import { signOut } from "@/lib/supabase/auth";
 const navItems = [
-  { name: "HOME", link: "/" },
-  { name: "ABOUT US", link: "/company" },
-  { name: "EARN", link: "/app/earn", soon: true },
+  { name: "Home", link: "/" },
+  { name: "About Us", link: "/company" },
+  { name: "Earn", link: "/app/earn", soon: true },
 ];
 
 export default function Navbar() {
@@ -47,7 +47,7 @@ export default function Navbar() {
           <Link
             href="/auth/login"
             style={{ position: "relative", zIndex: 50 }}
-            className="px-6 py-3 rounded-md bg-teal-700 text-white hover:bg-teal-800 transition-colors font-semibold"
+            className="px-4 py-2 rounded-lg bg-teal-700 text-white hover:bg-teal-800 transition-colors font-semibold"
           >
             Get Started
           </Link>

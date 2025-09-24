@@ -252,10 +252,7 @@ export const NavbarLogo = () => {
       href="/"
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
     >
-      <Image src="/Whale.png" alt="logo" width={30} height={30} />
-      <span className="font-bold text-lg text-teal-800 dark:text-white">
-        SPOUT
-      </span>
+      <Image src="/Spout_complete.png" alt="logo" width={100} height={100} />
     </Link>
   );
 };
