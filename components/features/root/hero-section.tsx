@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { JoinMailingList } from "./join-mailing-list";
 import { PartnerTicker } from "./partner-ticker";
+import { Waves } from "@/components/wave-background";
 
 export function HeroSection() {
   return (
     <section className="w-full flex flex-col items-center justify-center relative min-h-screen bg-white">
       {/* Background grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
-      
+      {/* <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div> */}
+      <Waves />
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-20 flex flex-col items-center justify-center">
         {/* Main content area */}
         <div className="text-center mb-4 mt-20 w-full max-w-4xl">

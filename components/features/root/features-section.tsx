@@ -14,6 +14,7 @@ export function FeaturesSection() {
         pixelClassName="rounded-2xl bg-emerald-600/15"
         pixelSize={screenSize.lessThan("md") ? 40 : 60}
       />
+      {/* <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div> */}
       <Features />
     </section>
   );
