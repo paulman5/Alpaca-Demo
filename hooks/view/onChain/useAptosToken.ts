@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useAptosClient } from "./useAptosClient";
+import { useAptosClient } from "../../aptos/useAptosClient";
 import { APTOS_MODULE } from "@/lib/aptos";
 
 export function useAptosBalance(ownerAddress: string | undefined) {
@@ -39,7 +39,3 @@ export function useAptosBalance(ownerAddress: string | undefined) {
 
   return { balance: data, isLoading, error, refetch } as const;
 }
-
-// Transfer hook removed: only balance is supported
-
-
