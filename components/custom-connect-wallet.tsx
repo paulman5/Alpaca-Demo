@@ -10,21 +10,21 @@ import { LogOut, User, Copy } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import { useDisconnect, useAccount } from "wagmi";
-import { useNetwork } from "@/context/NetworkContext";
+// import { useNetwork } from "@/context/NetworkContext";
 
 const CustomConnectButton = () => {
-  const { checkAndSwitchNetwork } = useNetwork();
+  // const { checkAndSwitchNetwork } = useNetwork();
   const { disconnectAsync } = useDisconnect();
   const { isConnected } = useAccount();
 
   // Automatically switch to Pharos when wallet connects
-  useEffect(() => {
-    if (isConnected) {
-      checkAndSwitchNetwork().catch((error: Error) => {
-        console.error("Failed to switch network in connect button:", error);
-      });
-    }
-  }, [isConnected, checkAndSwitchNetwork]);
+  // useEffect(() => {
+  //   if (isConnected) {
+  //     checkAndSwitchNetwork().catch((error: Error) => {
+  //       console.error("Failed to switch network in connect button:", error);
+  //     });
+  //   }
+  // }, [isConnected, checkAndSwitchNetwork]);
   const copyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
   };
@@ -36,12 +36,12 @@ const CustomConnectButton = () => {
         const connected = ready && account && chain;
 
         const handleLogout = async () => {
-          await checkAndSwitchNetwork();
+          // await checkAndSwitchNetwork();
           await disconnectAsync();
         };
 
         const handleAccountDetails = async () => {
-          await checkAndSwitchNetwork();
+          // await checkAndSwitchNetwork();
           openAccountModal();
         };
 

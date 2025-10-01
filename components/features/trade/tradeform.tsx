@@ -13,9 +13,8 @@ import {
   Shield,
 } from "lucide-react";
 import React from "react";
-import { useOnchainID } from "@/hooks/view/onChain/useOnchainID";
-import { useContractAddress } from "@/lib/addresses";
-import { useAccount } from "wagmi";
+import { useIsKycVerified } from "@/hooks/view/onChain/useKycRegistry";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import {
   Tooltip,
   TooltipContent,
@@ -39,7 +38,6 @@ type TradeFormProps = {
   usdcLoading: boolean;
   usdcError: boolean;
   balanceLoading: boolean;
-  isApprovePending: boolean;
   isOrderPending: boolean;
   handleBuy: () => void;
   handleSell: () => void;
@@ -66,7 +64,6 @@ export default function TradeForm({
   usdcLoading,
   usdcError,
   balanceLoading,
-  isApprovePending,
   isOrderPending,
   handleBuy,
   handleSell,
@@ -77,24 +74,14 @@ export default function TradeForm({
   priceChangePercent,
   priceChange,
 }: TradeFormProps) {
-  const { address: userAddress } = useAccount();
-  const idFactoryAddress = useContractAddress("idfactory");
-  const issuerAddress = useContractAddress("issuer");
-
-  const { hasKYCClaim, kycLoading } = useOnchainID({
-    userAddress,
-    idFactoryAddress,
-    issuer: issuerAddress || "",
-    topic: 1,
-  });
+  const { address: userAddress } = useAptosWallet();
+  const { isVerified: hasKYCClaim, isLoading: kycLoading } = useIsKycVerified(
+    userAddress ?? undefined,
+  );
 
   // Determine if buy button should be disabled
   const isBuyDisabled =
-    !buyUsdc ||
-    isApprovePending ||
-    isOrderPending ||
-    !hasKYCClaim ||
-    kycLoading;
+    !buyUsdc || isOrderPending || !hasKYCClaim || kycLoading;
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -337,10 +324,10 @@ export default function TradeForm({
                 onClick={handleBuy}
                 isDisabled={isBuyDisabled}
               >
-                {isApprovePending || isOrderPending ? (
+                {isOrderPending ? (
                   <>
                     <LoadingSpinner />
-                    {isApprovePending ? "Approving..." : "Processing..."}
+                    {"Processing..."}
                   </>
                 ) : !hasKYCClaim && !kycLoading ? (
                   "KYC Required"
@@ -436,12 +423,12 @@ export default function TradeForm({
               <Button
                 className="w-full mt-4 font-semibold text-lg py-3 bg-blue-500 hover:bg-blue-600"
                 onClick={handleSell}
-                isDisabled={!sellToken || isApprovePending || isOrderPending}
+                isDisabled={!sellToken || isOrderPending}
               >
-                {isApprovePending || isOrderPending ? (
+                {isOrderPending ? (
                   <>
                     <LoadingSpinner />
-                    {isApprovePending ? "Approving..." : "Processing..."}
+                    {"Processing..."}
                   </>
                 ) : (
                   `Sell S${selectedToken}`

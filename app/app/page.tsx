@@ -20,33 +20,32 @@ import {
   PieChart,
   Zap,
 } from "lucide-react";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
+import { useTokenBalance } from "@/hooks/view/onChain/useAptosToken";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAccount } from "wagmi";
-import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+// import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { Suspense } from "react";
-import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
+// import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 
 function DashboardPage() {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useAptosWallet();
   const {
     balance: tokenBalance,
-    symbol: tokenSymbol,
     isLoading: balanceLoading,
     isError: balanceError,
-  } = useTokenBalance(userAddress);
+  } = useTokenBalance(userAddress ?? undefined);
   const {
     price: currentPrice,
     previousClose,
     isLoading: priceLoading,
     error: priceError,
   } = useMarketData("LQD");
-  const {
-    activities,
-    isLoading: activitiesLoading,
-    hasMore,
-    loadMore,
-  } = useRecentActivity(userAddress);
+  // const {
+  //   activities,
+  //   isLoading: activitiesLoading,
+  //   hasMore,
+  //   loadMore,
+  // } = useRecentActivity(userAddress);
 
   // Format number to 3 decimals, matching portfolio holdings
   const formatNumber = (num: number) => {
@@ -77,7 +76,7 @@ function DashboardPage() {
     tokenBalance && tokenBalance > 0
       ? [
           {
-            symbol: tokenSymbol || "SUSC",
+            symbol: "SUSC",
             shares: tokenBalance,
             value: portfolioValue,
           },
@@ -301,13 +300,15 @@ function DashboardPage() {
         })}
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity - temporarily disabled for Aptos restructure */}
+      {/**
       <PortfolioActivity
         activities={activities}
         activitiesLoading={activitiesLoading}
         hasMore={hasMore}
         loadMore={loadMore}
       />
+      */}
     </div>
   );
 }

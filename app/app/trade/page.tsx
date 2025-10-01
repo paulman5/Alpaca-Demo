@@ -6,15 +6,9 @@ import TradeTokenSelector from "@/components/features/trade/tradetokenselector";
 import TradeChart from "@/components/features/trade/tradechart";
 import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
-import { useAccount, useConfig } from "wagmi";
-import { useERC20Approve } from "@/hooks/writes/onChain/useERC20Approve";
-import { useOrdersContract } from "@/hooks/writes/onChain/useOrders";
-import { waitForTransactionReceipt } from "wagmi/actions";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
-import { useUSDCTokenBalance } from "@/hooks/view/onChain/useUSDCTokenBalance";
-import { useContractAddress, USDC_DECIMALS } from "@/lib/addresses";
-import { useReadContract } from "wagmi";
-import erc3643ABI from "@/abi/erc3643.json";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
+import { useTokenBalance } from "@/hooks/view/onChain/useAptosToken";
 
 const TOKENS = [{ label: "LQD", value: "LQD" }];
 
@@ -42,45 +36,24 @@ const TradePage = () => {
     error: "",
   });
 
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useAptosWallet();
   const {
     balance: tokenBalance,
-    symbol: tokenSymbol,
     isLoading: balanceLoading,
+    isError: _balanceError,
     refetch: refetchTokenBalance,
-  } = useTokenBalance(userAddress);
-  const ordersAddress = useContractAddress("orders") as `0x${string}`;
-  const usdcAddress = useContractAddress("usdc") as `0x${string}`;
-  const rwaTokenAddress = useContractAddress("rwatoken") as `0x${string}`;
-  const { approve, isPending: isApprovePending } = useERC20Approve(usdcAddress);
-  const {
-    buyAsset,
-    sellAsset,
-    isPending: isOrderPending,
-    isSuccess: isOrderSuccess,
-    error: orderError,
-  } = useOrdersContract();
-  const config = useConfig();
-  const {
-    balance: usdcBalance,
-    isLoading: usdcLoading,
-    isError: usdcError,
-    refetch: refetchUSDCBalance,
-  } = useUSDCTokenBalance(userAddress);
-
-  // Get token decimals dynamically
-  const { data: tokenDecimals } = useReadContract({
-    address: rwaTokenAddress,
-    abi: erc3643ABI.abi,
-    functionName: "decimals",
-  });
-
-  const actualTokenDecimals = tokenDecimals ? Number(tokenDecimals) : 6;
+  } = useTokenBalance(userAddress ?? undefined);
+  const { buyAsset, sellAsset, isPending: isOrderPending, error: orderError } =
+    useAptosOrders();
+  const usdcBalance = 0;
+  const usdcLoading = false;
+  const usdcError = undefined as unknown as boolean;
+  const refetchUSDCBalance = () => Promise.resolve({ data: undefined as any });
 
   // Monitor order transaction state
   useEffect(() => {
     if (transactionModal.isOpen && transactionModal.status === "waiting") {
-      if (isOrderSuccess) {
+      if (false) {
         // Transaction completed successfully
         setTransactionModal((prev) => ({
           ...prev,
@@ -105,7 +78,6 @@ const TradePage = () => {
       }
     }
   }, [
-    isOrderSuccess,
     orderError,
     transactionModal.isOpen,
     transactionModal.status,
@@ -235,11 +207,8 @@ const TradePage = () => {
 
   const handleBuy = async () => {
     if (!userAddress || !buyUsdc || !latestPrice) return;
-    // Convert USDC amount to proper decimals using USDC_DECIMALS
     const usdcAmountNum = parseFloat(buyUsdc);
-    const amount = BigInt(
-      Math.floor(usdcAmountNum * 1e6),
-    );
+    const amount = BigInt(Math.floor(usdcAmountNum * 1e6));
 
     const estimatedTokenAmount =
       latestPrice > 0 ? usdcAmountNum / latestPrice : 0;
@@ -255,14 +224,9 @@ const TradePage = () => {
     });
 
     try {
-      // Step 1: Approve USDC
-      const approveTx = await approve(ordersAddress, amount);
-      await waitForTransactionReceipt(config, { hash: approveTx });
-      console.log("✅ USDC approval completed");
-
-      // Step 2: Execute buy transaction
-      console.log("📤 Sending USDC amount to contract:", amount.toString());
-      buyAsset(BigInt(2000002), selectedToken, rwaTokenAddress, amount);
+      // Execute buy order via Aptos module
+      console.log("📤 Sending buy order:", amount.toString());
+      await buyAsset(selectedToken, amount.toString());
       setBuyUsdc("");
 
       // Keep modal open for buy transaction to complete
@@ -312,7 +276,7 @@ const TradePage = () => {
       return;
     }
 
-    // Multiply by 18 decimals for token amount
+    // Multiply by 18 decimals for token amount (u128)
     const tokenAmount = BigInt(Math.floor(sellTokenAmount * 1e18));
 
     const estimatedUsdcAmount =
@@ -329,8 +293,8 @@ const TradePage = () => {
     });
 
     try {
-      // Execute sell transaction
-      sellAsset(BigInt(2000002), selectedToken, rwaTokenAddress, tokenAmount);
+      // Execute sell order via Aptos module
+      await sellAsset(selectedToken, tokenAmount.toString());
       setSellToken("");
 
       console.log("⏳ Sell transaction submitted, keeping modal open...");
@@ -376,7 +340,6 @@ const TradePage = () => {
         usdcLoading={usdcLoading}
         usdcError={usdcError}
         balanceLoading={balanceLoading}
-        isApprovePending={isApprovePending}
         isOrderPending={isOrderPending}
         handleBuy={handleBuy}
         handleSell={handleSell}

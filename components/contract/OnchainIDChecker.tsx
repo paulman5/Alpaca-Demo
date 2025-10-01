@@ -1,3 +1,4 @@
+/*
 "use client";
 
 import { useAccount } from "wagmi";
@@ -298,3 +299,4 @@ export default function OnchainIDChecker() {
 
   return null;
 }
+*/

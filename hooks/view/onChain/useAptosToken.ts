@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAptosClient } from "../../aptos/useAptosClient";
 import { APTOS_MODULE } from "@/lib/aptos";
 
-export function useAptosBalance(ownerAddress: string | undefined) {
+export function useTokenBalance(ownerAddress: string | undefined) {
   const client = useAptosClient();
   const [data, setData] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,5 +37,5 @@ export function useAptosBalance(ownerAddress: string | undefined) {
     }
   }, [ownerAddress, refetch]);
 
-  return { balance: data, isLoading, error, refetch } as const;
+  return { balance: data, isError: Boolean(error), isLoading, refetch } as const;
 }

@@ -22,15 +22,16 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
-import CustomConnectWallet from "@/components/custom-connect-wallet";
+// import CustomConnectWallet from "@/components/custom-connect-wallet";
 import React from "react";
-import { useAccount } from "wagmi";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { Button } from "@/components/ui/button";
 
 export function DashboardSidebarNavClient() {
   const { open } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
-  const { isConnected } = useAccount();
+  const { isConnected, connect } = useAptosWallet();
 
   const isActive = (path: string) => {
     if (path === "/app") {
@@ -136,7 +137,15 @@ export function DashboardSidebarNavClient() {
               {isConnected ? "Signed in" : "Not connected"}
             </span>
           </div>
-          <CustomConnectWallet />
+          {/* Aptos connect button */}
+          {!isConnected && (
+            <Button
+              onClick={connect}
+              className="mt-3 bg-black text-white text-sm rounded-2xl px-4 py-2 border border-gray-600/50 hover:bg-black/90 focus:outline-none"
+            >
+              Connect Wallet
+            </Button>
+          )}
           {/* <SignOutButton className="w-full flex items-center gap-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
             <LogOut className="h-4 w-4" />
             <span>Sign Out</span>

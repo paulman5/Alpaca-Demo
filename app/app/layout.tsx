@@ -1,7 +1,7 @@
 import { Sidebar, SidebarInset } from "@/components/ui/sidebar";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
-import OnchainIDChecker from "@/components/contract/OnchainIDChecker";
+// import OnchainIDChecker from "@/components/contract/OnchainIDChecker";
 import {
   DashboardSidebarNavClient,
   DashboardNavbarHeaderClient,
@@ -24,9 +24,9 @@ export default function DashboardLayout({
 
         <SidebarInset className="flex-1 flex flex-col h-screen overflow-hidden">
           <DashboardNavbarHeaderClient />
-          <Suspense fallback={<div>Loading...</div>}>
+          {/* <Suspense fallback={<div>Loading...</div>}>
             <OnchainIDChecker />
-          </Suspense>
+          </Suspense> */}
           <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
             {children}
           </main>
