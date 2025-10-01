@@ -4,25 +4,24 @@ import PortfolioHeader from "@/components/features/portfolio/portfolioheader";
 import PortfolioSummaryCards from "@/components/features/portfolio/portfoliosummarycards";
 import PortfolioHoldings from "@/components/features/portfolio/portfolioholdings";
 import PortfolioPerformance from "@/components/features/portfolio/portfolioperformance";
-import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
+// import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
+import { useTokenBalance } from "@/hooks/view/onChain/useAptosToken";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAccount } from "wagmi";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
-import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
+// import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 
 function PortfolioPage() {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useAptosWallet();
   const {
     balance: tokenBalance,
-    symbol: tokenSymbol,
     isLoading: balanceLoading,
     isError: balanceError,
     refetch: refetchTokenBalance,
-  } = useTokenBalance(userAddress);
+  } = useTokenBalance(userAddress ?? undefined);
 
   const {
     price: currentPrice,
@@ -33,12 +32,12 @@ function PortfolioPage() {
 
   const { returns, isLoading: returnsLoading } = useReturns("LQD");
   const { username } = useCurrentUser();
-  const {
-    activities,
-    isLoading: activitiesLoading,
-    hasMore,
-    loadMore,
-  } = useRecentActivity(userAddress);
+  // const {
+  //   activities,
+  //   isLoading: activitiesLoading,
+  //   hasMore,
+  //   loadMore,
+  // } = useRecentActivity(userAddress);
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
     return num.toLocaleString(undefined, {
@@ -62,7 +61,7 @@ function PortfolioPage() {
 
   const holdings = [
     {
-      symbol: tokenSymbol || "SLQD",
+      symbol: "SLQD",
       name: "Spout US Corporate Bond Token",
       shares: tokenBalance || 0,
       avgPrice: previousClose || 0,
@@ -141,14 +140,14 @@ function PortfolioPage() {
                 formatPercent={formatPercent}
               />
             </TabsContent>
-            <TabsContent value="activity" className="space-y-6">
+            {/* <TabsContent value="activity" className="space-y-6">
               <PortfolioActivity
                 activities={activities}
                 activitiesLoading={activitiesLoading}
                 hasMore={hasMore}
                 loadMore={loadMore}
               />
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
         </>
       )}
