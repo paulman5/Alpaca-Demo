@@ -4,7 +4,6 @@ import "react-toastify/dist/ReactToastify.css";
 import type { Metadata } from "next";
 import { Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
-import { RumInit } from "@/aws/rum-init";
 import { cn } from "@/lib/utils";
 import { ConditionalNavbar } from "@/components/conditionalNavbar";
 import { Analytics } from "@vercel/analytics/next";
@@ -75,7 +74,6 @@ export default async function RootLayout({
           ibmPlexMono.variable,
         )}
       >
-        <RumInit />
         <Providers>
           <ConditionalNavbar />
           <main className="flex-1">{children}</main>
