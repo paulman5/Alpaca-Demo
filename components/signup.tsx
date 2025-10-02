@@ -188,12 +188,12 @@ export default function SignupForm() {
               : "Create Account"}
           </button>
           {serverError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <div className="bg-red-50 border border-red-200 rounded-none p-3">
               <p className="text-sm text-red-600">{serverError}</p>
             </div>
           )}
           {success && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-3">
+            <div className="bg-green-50 border border-green-200 rounded-none p-3">
               <p className="text-sm text-green-600">
                 Account created successfully! Redirecting to login...
               </p>

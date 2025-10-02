@@ -3,7 +3,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 
 export default function ProfileHeader() {
   return (
-    <div className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 rounded-3xl p-8 text-white relative overflow-hidden">
+    <div className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 rounded-none p-8 text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(255,255,255,0.1),transparent_50%)]"></div>
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-4">

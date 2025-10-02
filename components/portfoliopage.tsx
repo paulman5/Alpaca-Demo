@@ -119,7 +119,7 @@ export default function PortfolioPage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-none p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">

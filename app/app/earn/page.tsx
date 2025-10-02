@@ -76,7 +76,7 @@ function EarnPage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 rounded-3xl p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 rounded-none p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_60%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">

@@ -29,7 +29,7 @@ export default function TransactionModal({
 
   const modalContent = (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <div className="bg-white rounded-none p-6 w-full max-w-md mx-4 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -60,7 +60,7 @@ export default function TransactionModal({
               </div>
 
               {/* Transaction Details */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="bg-gray-50 rounded-none p-4 mb-6">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     {transactionType === "buy" ? (
@@ -131,7 +131,7 @@ export default function TransactionModal({
               </div>
 
               {/* Transaction Details */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="bg-gray-50 rounded-none p-4 mb-6">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     {transactionType === "buy" ? (

@@ -55,7 +55,7 @@ export default function Navbar() {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="px-4 py-2 z-50 rounded-md bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors focus:outline-none">
+              <button className="px-4 py-2 z-50 rounded-none bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors focus:outline-none">
                 {displayName}
               </button>
             </DropdownMenuTrigger>

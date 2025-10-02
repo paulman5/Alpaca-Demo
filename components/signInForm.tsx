@@ -135,7 +135,7 @@ export default function SignInForm() {
             {isSubmitting || isLoading ? "Signing In..." : "Sign In"}
           </button>
           {serverError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <div className="bg-red-50 border border-red-200 rounded-none p-3">
               <p className="text-sm text-red-600">{serverError}</p>
             </div>
           )}

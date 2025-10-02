@@ -4,7 +4,7 @@ import { ArrowUpDown } from "lucide-react";
 export default function TradeHeader() {
   return (
     <div
-      className="bg-gradient-to-br rounded-3xl p-8 text-white relative overflow-hidden"
+      className="bg-gradient-to-br rounded-none p-8 text-white relative overflow-hidden"
       style={{
         background:
           "linear-gradient(120deg, #7F1DFF 0%, #4F46E5 60%, #0EA5E9 100%)",
