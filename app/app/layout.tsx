@@ -17,8 +17,8 @@ export default function DashboardLayout({
   return (
     <SidebarProvider defaultOpen={true}>
       <Toaster position="top-right" />
-      <div className="flex h-screen w-full overflow-hidden bg-gray-50">
-        <Sidebar className="border-r bg-white">
+      <div className="flex h-screen w-full overflow-hidden bg-[#f7f9f9]">
+        <Sidebar className="border-r bg-white border-[#004040]/20">
           <DashboardSidebarNavClient />
         </Sidebar>
 
@@ -27,7 +27,7 @@ export default function DashboardLayout({
           {/* <Suspense fallback={<div>Loading...</div>}>
             <OnchainIDChecker />
           </Suspense> */}
-          <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
+          <main className="flex-1 overflow-y-auto p-6 bg-[#f7f9f9]">
             {children}
           </main>
         </SidebarInset>

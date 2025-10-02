@@ -100,9 +100,10 @@ export function DashboardSidebarNavClient() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/app/proof-of-reserve")}
+              className="flex items-center gap-3 opacity-75 cursor-not-allowed"
             >
               <Link
-                href="/app/proof-of-reserve"
+                href="/app"
                 className="flex items-center gap-3"
               >
                 <TrendingUp className="h-4 w-4" />
