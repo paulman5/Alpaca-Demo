@@ -13,6 +13,7 @@ export default function TradeChart({
   tokenData,
   selectedToken,
 }: TradeChartProps) {
+  console.log("tokenData: ", tokenData);
   return (
     <div className="mb-8">
       {loading ? (

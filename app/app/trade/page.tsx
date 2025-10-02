@@ -335,7 +335,7 @@ const TradePage = () => {
           selectedToken={selectedToken}
         />
       </div>
-      <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+      <div className="rounded-none shadow-sm">
         <TradeForm
         tradeType={tradeType}
         setTradeType={setTradeType}

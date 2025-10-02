@@ -17,7 +17,7 @@ export function HeroSection() {
         {/* Main content area */}
         <div className="text-center mb-4 mt-20 w-full max-w-4xl">
           <h1 className="text-3xl md:text-5xl font-serif font-medium text-teal-800 mb-8 tracking-tight leading-tight">
-            The platform for what's next in decentralized investing.
+            The platform for what&apos;s next in decentralized investing.
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-12 font-light leading-relaxed max-w-3xl mx-auto">
             Spout makes U.S. investment-grade assets like bonds and equities available as secure, yield-bearing tokens, fully backed 1:1 by real ETFs.
@@ -40,9 +40,9 @@ export function HeroSection() {
         {/* Mailing List Section */}
         <div className="w-full max-w-2xl mx-auto mb-20">
           <div className="text-center mb-4">
-            <p className="text-base text-gray-700 font-light">
-              [ JOIN THE PLATFORM THAT'S MAKING TRADITIONAL FINANCE MORE EFFICIENT ]
-            </p>
+          <p className="text-base text-gray-700 font-light">
+            {"[ JOIN THE PLATFORM THAT\'S MAKING TRADITIONAL FINANCE MORE EFFICIENT ]"}
+          </p>
           </div>
           <JoinMailingList />
         </div>
