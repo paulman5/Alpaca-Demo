@@ -12,11 +12,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useReserveContract } from "@/hooks/view/onChain/useReserveContract";
-import { useTotalSupply } from "@/hooks/view/onChain/useTotalSupply";
+// Reserve contract hooks temporarily disabled - will implement with Aptos hooks
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useYieldData } from "@/hooks/api/useYieldData";
-import { useContractAddress } from "@/lib/addresses";
 import {
   Shield,
   BarChart3,
@@ -40,17 +38,21 @@ const formatNumber = (num: number) => {
 };
 
 export default function ProofOfReservePage() {
-  const { totalSupply, isLoading: totalSupplyLoading } = useTotalSupply();
+  // Total supply functionality temporarily disabled - will implement with Aptos hooks
+  const totalSupply = 1000000; // Placeholder value
+  const totalSupplyLoading = false;
   const { price: currentPrice, isLoading: priceLoading } = useMarketData("LQD");
   const { data: lqdYield, isLoading: lqdYieldLoading } = useYieldData("LQD");
 
   // Use Blocksense feed ID 101001 for LQD Proof of Reserve
   const feedId = 101001;
-  const reserveContractAddress = useContractAddress(
-    "proofOfReserve",
-  ) as `0x${string}`;
-  const { requestReserves, isRequestPending, totalReserves, refetchReserves } =
-    useReserveContract(reserveContractAddress);
+  // Hardcoded Aptos testnet address for proof of reserve
+  const reserveContractAddress = "0x72F88509C53b939a0613c679a0F4768c0444d247" as `0x${string}`;
+  // Reserve contract functionality temporarily disabled - will implement with Aptos hooks
+  const requestReserves = () => {};
+  const isRequestPending = false;
+  const totalReserves = 0;
+  const refetchReserves = () => {};
 
   // Use LQD yield directly
   const yieldRate = lqdYield?.yield || 0;
@@ -70,7 +72,8 @@ export default function ProofOfReservePage() {
   };
 
   const handleRequestReserves = () => {
-    requestReserves(Number(379));
+    // Reserve request functionality temporarily disabled - will implement with Aptos hooks
+    console.log("Reserve request functionality coming soon with Aptos integration");
   };
 
   return (

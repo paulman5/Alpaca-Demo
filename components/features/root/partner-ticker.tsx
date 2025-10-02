@@ -31,9 +31,9 @@ const initialPartners = [
     link: "https://faroswap.xyz/",
   },
   {
-    src: "/partners/Inco.png",
-    alt: "Inco",
-    link: "https://www.inco.org/",
+    src: "/partners/Aptos.png",
+    alt: "Aptos",
+    link: "https://aptoslabs.com/",
   },
   {
     src: "/partners/Pharos.svg",

@@ -20,9 +20,9 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import Link from "next/link";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
+import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAccount } from "wagmi";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import {
   Tooltip,
@@ -30,19 +30,17 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import PortfolioPerformance from "@/components/features/portfolio/portfolioperformance";
 import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 
 export default function PortfolioPage() {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useAptosWallet();
   const {
     balance: tokenBalance,
-    symbol: tokenSymbol,
     isLoading: balanceLoading,
     isError: balanceError,
-  } = useTokenBalance(userAddress);
+  } = useTokenBalance(userAddress || undefined);
 
   const {
     price: currentPrice,
@@ -55,12 +53,11 @@ export default function PortfolioPage() {
 
   const { username, loading } = useCurrentUser();
 
-  const {
-    activities,
-    isLoading: activitiesLoading,
-    hasMore,
-    loadMore,
-  } = useRecentActivity(userAddress);
+  // Recent activity temporarily disabled - will implement with Aptos hooks
+  const activities: any[] = [];
+  const activitiesLoading = false;
+  const hasMore = false;
+  const loadMore = () => {};
 
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
@@ -101,7 +98,7 @@ export default function PortfolioPage() {
 
   const holdings = [
     {
-      symbol: tokenSymbol || "SLQD",
+      symbol: "SLQD",
       name: "Spout US Corporate Bond Token",
       shares: tokenBalance || 0,
       avgPrice: previousClose || 0,

@@ -6,7 +6,6 @@ import React from "react";
 // // import { useTotalSupply } from "@/hooks/view/onChain/useTotalSupply";
 // import { useMarketData } from "@/hooks/api/useMarketData";
 // import { useYieldData } from "@/hooks/api/useYieldData";
-// import { useContractAddress } from "@/lib/addresses";
 // import {
 //   ReserveHeader,
 //   ReserveSummary,

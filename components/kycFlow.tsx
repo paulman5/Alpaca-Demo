@@ -184,7 +184,7 @@ export default function KYCFlow() {
             <strong>KYC (Know Your Customer)</strong> verification is required for certain trading activities.
           </p>
           <ul className="list-disc list-inside space-y-1 ml-4">
-            <li>Click "Verify KYC" to submit a verification request</li>
+            <li>{`Click "Verify KYC" to submit a verification request`}</li>
             <li>Your verification status is stored on the Aptos blockchain</li>
             <li>Verified users can access enhanced trading features</li>
             <li>You can remove verification at any time</li>
