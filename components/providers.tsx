@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
+import { AptosNetworkProvider } from "@/context/AptosNetworkContext";
 import { toast } from "sonner";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 
@@ -32,8 +33,10 @@ function AptosWalletConnectionPrompt() {
 const Providers = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <AptosWalletConnectionPrompt />
-      {children}
+      <AptosNetworkProvider>
+        <AptosWalletConnectionPrompt />
+        {children}
+      </AptosNetworkProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

@@ -7,6 +7,7 @@ declare global {
     aptos?: {
       account(): Promise<{ address: string }>;
       connect(): Promise<{ address: string }>;
+      disconnect?: () => Promise<void>;
       signAndSubmitTransaction(tx: any): Promise<{ hash: string }>;
       signTransaction?(tx: any): Promise<any>;
       network?: () => Promise<{ name: string }>;
@@ -17,13 +18,19 @@ declare global {
 export function useAptosWallet() {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const connect = useCallback(async () => {
     if (!window?.aptos) throw new Error("Aptos wallet not found");
-    const { address } = await window.aptos.connect();
-    setAddress(address);
-    setIsConnected(true);
-    return address;
+    setIsConnecting(true);
+    try {
+      const { address } = await window.aptos.connect();
+      setAddress(address);
+      setIsConnected(true);
+      return address;
+    } finally {
+      setIsConnecting(false);
+    }
   }, []);
 
   const getAccount = useCallback(async () => {
@@ -47,7 +54,18 @@ export function useAptosWallet() {
     return window.aptos.signAndSubmitTransaction(tx);
   }, []);
 
-  return { address, isConnected, connect, signAndSubmit } as const;
+  const disconnect = useCallback(async () => {
+    try {
+      if (window?.aptos?.disconnect) {
+        await window.aptos.disconnect();
+      }
+    } finally {
+      setAddress(null);
+      setIsConnected(false);
+    }
+  }, []);
+
+  return { address, isConnected, isConnecting, connect, disconnect, signAndSubmit } as const;
 }
 
 
