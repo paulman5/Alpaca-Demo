@@ -91,7 +91,10 @@ export function DashboardSidebarNavClient() {
             <SidebarMenuButton className="flex items-center gap-3 opacity-75 cursor-not-allowed">
               <BarChart3 className="h-4 w-4" />
               <span>Earn</span>
-              <Badge variant="secondary" className="ml-auto">
+              <Badge
+                variant="secondary"
+                className="ml-auto bg-secondary/20 text-[#004040] border border-secondary"
+              >
                 Soon
               </Badge>
             </SidebarMenuButton>
@@ -115,7 +118,10 @@ export function DashboardSidebarNavClient() {
             <SidebarMenuButton className="flex items-center gap-3 opacity-75 cursor-not-allowed">
               <Store className="h-4 w-4" />
               <span>Markets</span>
-              <Badge variant="secondary" className="ml-auto">
+              <Badge
+                variant="secondary"
+                className="ml-auto bg-secondary/20 text-[#004040] border border-secondary"
+              >
                 Soon
               </Badge>
             </SidebarMenuButton>

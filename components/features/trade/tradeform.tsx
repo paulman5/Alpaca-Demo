@@ -85,15 +85,15 @@ export default function TradeForm({
 
   return (
     <div className="w-full max-w-xl mx-auto">
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50 hover:shadow-xl transition-shadow duration-200">
+      <Card className="shadow-lg border border-[#004040]/15 bg-white hover:shadow-xl transition-shadow duration-200 rounded-none">
         <CardHeader className="pb-4">
           {/* Buy/Sell Toggle */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               {tradeType === "buy" ? (
-                <ArrowDownCircle className="text-emerald-500 w-6 h-6" />
+                <ArrowDownCircle className="text-[#004040] w-6 h-6" />
               ) : (
-                <ArrowUpCircle className="text-blue-500 w-6 h-6" />
+                <ArrowUpCircle className="text-[#a7c6ed] w-6 h-6" />
               )}
               <div>
                 <CardTitle className="text-xl">
@@ -114,7 +114,7 @@ export default function TradeForm({
               </div>
               <div
                 className={`font-bold text-base ${
-                  tradeType === "buy" ? "text-emerald-700" : "text-blue-700"
+                  tradeType === "buy" ? "text-[#004040]" : "text-[#a7c6ed]"
                 }`}
               >
                 {tradeType === "buy"
@@ -143,13 +143,13 @@ export default function TradeForm({
           </div>
 
           {/* Toggle Buttons */}
-          <div className="flex bg-slate-100 rounded-none p-1">
+          <div className="flex bg-[#e6f2f2] rounded-none p-1">
             <Button
-              variant={tradeType === "buy" ? "success" : "ghost"}
+              variant={tradeType === "buy" ? "default" : "ghost"}
               onClick={() => setTradeType("buy")}
               className={`flex-1 transition-all duration-200 ${
                 tradeType === "buy"
-                  ? "shadow-lg transform scale-[0.98] ring-2 ring-emerald-200"
+                  ? "bg-[#004040] hover:bg-[#004040] text-white shadow-lg transform scale-[0.98] ring-2 ring-[#004040]/30"
                   : "hover:scale-[1.02]"
               }`}
             >
@@ -161,7 +161,7 @@ export default function TradeForm({
               onClick={() => setTradeType("sell")}
               className={`flex-1 transition-all duration-200 ${
                 tradeType === "sell"
-                  ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg transform scale-[0.98] ring-2 ring-blue-200 shadow-blue-500/25"
+                  ? "bg-[#a7c6ed] hover:bg-[#9a5fe3] text-white shadow-lg transform scale-[0.98] ring-2 ring-[#a7c6ed]/30 shadow-[#a7c6ed]/25"
                   : "text-slate-600 hover:scale-[1.02]"
               }`}
             >
@@ -173,7 +173,7 @@ export default function TradeForm({
 
         <CardContent className="pt-0">
           {/* Market Info Bar */}
-          <div className="mb-6 p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-none border border-slate-200">
+          <div className="mb-6 p-3 bg-gradient-to-r from-[#f5faf9] to-[#eef6f6] rounded-none border border-[#004040]/15">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div>
@@ -193,8 +193,8 @@ export default function TradeForm({
                   <div
                     className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                       priceChangePercent >= 0
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-[#e6f2f2] text-[#004040]"
+                        : "bg-[#f5eaff] text-[#6c2ab5]"
                     }`}
                   >
                     <TrendingUp
@@ -211,10 +211,10 @@ export default function TradeForm({
                   <p className="text-slate-400 text-sm">--</p>
                 ) : (
                   <p
-                    className={`font-semibold ${
+                  className={`font-semibold ${
                       priceChangePercent >= 0
-                        ? "text-emerald-600"
-                        : "text-red-600"
+                        ? "text-[#004040]"
+                        : "text-[#a7c6ed]"
                     }`}
                   >
                     ${priceChange >= 0 ? "+" : ""}
@@ -236,15 +236,15 @@ export default function TradeForm({
                   value={buyUsdc}
                   onChange={(e) => setBuyUsdc(e.target.value)}
                   placeholder="Enter USDC amount"
-                  className="border border-emerald-200 focus:border-emerald-400 rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
+                  className="border border-[#004040]/30 focus:border-[#004040] rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
                 />
               </div>
 
               {buyUsdc && latestPrice && latestPrice > 0 && (
                 <div className="mb-4 space-y-3">
                   {/* Estimation Summary */}
-                  <div className="p-4 rounded-none bg-emerald-50 border border-emerald-100">
-                    <div className="text-sm text-emerald-700 mb-3 font-medium">
+                  <div className="p-4 rounded-none bg-[#f5faf9] border border-[#004040]/15">
+                    <div className="text-sm text-[#004040] mb-3 font-medium">
                       Transaction Summary
                     </div>
                     <div className="space-y-2">
@@ -264,7 +264,7 @@ export default function TradeForm({
                         <span className="text-slate-600">
                           You receive (est.):
                         </span>
-                        <span className="font-bold text-emerald-700">
+                        <span className="font-bold text-[#004040]">
                           {netReceiveTokens} S{selectedToken}
                         </span>
                       </div>
@@ -319,8 +319,7 @@ export default function TradeForm({
               )}
 
               <Button
-                className="w-full mt-4 font-semibold text-lg py-3"
-                variant="success"
+                className="w-full mt-4 font-semibold text-lg py-3 bg-[#004040] hover:bg-[#004040]"
                 onClick={handleBuy}
                 isDisabled={isBuyDisabled}
               >
@@ -347,15 +346,15 @@ export default function TradeForm({
                   value={sellToken}
                   onChange={(e) => setSellToken(e.target.value)}
                   placeholder={`Enter S${selectedToken} amount`}
-                  className="border border-blue-200 focus:border-blue-400 rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
+                  className="border border-[#a7c6ed]/40 focus:border-[#a7c6ed] rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
                 />
               </div>
 
               {sellToken && latestPrice && latestPrice > 0 && (
                 <div className="mb-4 space-y-3">
                   {/* Estimation Summary */}
-                  <div className="p-4 rounded-none bg-blue-50 border border-blue-100">
-                    <div className="text-sm text-blue-700 mb-3 font-medium">
+                  <div className="p-4 rounded-none bg-[#f5eaff] border border-[#a7c6ed]/30">
+                    <div className="text-sm text-[#6c2ab5] mb-3 font-medium">
                       Transaction Summary
                     </div>
                     <div className="space-y-2">
@@ -383,7 +382,7 @@ export default function TradeForm({
                         <span className="text-slate-600">
                           You receive (net):
                         </span>
-                        <span className="font-bold text-blue-700">
+                        <span className="font-bold text-[#6c2ab5]">
                           {netReceiveUsdc} USDC
                         </span>
                       </div>
@@ -421,7 +420,7 @@ export default function TradeForm({
               )}
 
               <Button
-                className="w-full mt-4 font-semibold text-lg py-3 bg-blue-500 hover:bg-blue-600"
+                className="w-full mt-4 font-semibold text-lg py-3 bg-[#a7c6ed] hover:bg-[#9a5fe3]"
                 onClick={handleSell}
                 isDisabled={!sellToken || isOrderPending}
               >

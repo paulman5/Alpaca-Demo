@@ -29,6 +29,7 @@ export default function PortfolioHeader({
   return (
     <div className="bg-gradient-to-r from-[#004040] via-[#035a5a] to-[#004040] rounded-none p-8 text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
       <div className="relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
@@ -57,7 +58,7 @@ export default function PortfolioHeader({
               ${formatNumber(portfolioValue)}
             </div>
             <div
-              className={`flex items-center justify-end text-lg ${dayChange >= 0 ? "text-[#cfe7e7]" : "text-[#ac76ed]"}`}
+              className={`flex items-center justify-end text-lg ${dayChange >= 0 ? "text-[#cfe7e7]" : "text-[#a7c6ed]"}`}
             >
               {dayChange >= 0 ? (
                 <TrendingUp className="h-5 w-5 mr-2" />

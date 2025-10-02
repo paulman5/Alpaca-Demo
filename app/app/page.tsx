@@ -208,7 +208,7 @@ function DashboardPage() {
                   {stat.positive !== null && (
                     <Badge
                       variant={stat.positive ? "default" : "destructive"}
-                      className={`text-xs ${stat.positive ? "bg-[#004040]" : "bg-[#ac76ed]"}`}
+                      className={`text-xs ${stat.positive ? "bg-[#004040]" : "bg-[#a7c6ed]"}`}
                     >
                       {stat.positive ? "↗" : "↘"}
                     </Badge>
@@ -226,7 +226,7 @@ function DashboardPage() {
                       stat.positive === true
                         ? "text-[#004040]"
                         : stat.positive === false
-                          ? "text-[#ac76ed]"
+                          ? "text-[#a7c6ed]"
                           : "text-slate-500"
                     }`}
                   >
@@ -261,7 +261,7 @@ function DashboardPage() {
                     {feature.soon && (
                       <Badge
                         variant="outline"
-                        className="text-xs bg-[#f1e7fb] text-[#6c2ab5] border-[#ac76ed]"
+                        className="text-xs bg-[#f1e7fb] text-[#6c2ab5] border-[#a7c6ed]"
                       >
                         Soon
                       </Badge>

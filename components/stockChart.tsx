@@ -102,7 +102,7 @@ export default function StockChart({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border border-[#004040]/15 rounded-none">
       <CardHeader className="border-b">
         <div className="flex flex-col gap-1">
           <div className="mb-1">
@@ -159,12 +159,12 @@ export default function StockChart({
           <AreaChart data={filteredData}>
             <defs>
               <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                <stop offset="5%" stopColor="#a7c6ed" stopOpacity={0.7} />
+                <stop offset="95%" stopColor="#a7c6ed" stopOpacity={0.1} />
               </linearGradient>
               <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
+                <stop offset="5%" stopColor="#004040" stopOpacity={0.7} />
+                <stop offset="95%" stopColor="#004040" stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <XAxis
@@ -188,7 +188,7 @@ export default function StockChart({
             <Area
               type="monotone"
               dataKey={chartType === "price" ? "price" : "volume"}
-              stroke={chartType === "price" ? "#3b82f6" : "#10b981"}
+              stroke={chartType === "price" ? "#a7c6ed" : "#004040"}
               strokeWidth={2}
               fill={
                 chartType === "price" ? "url(#colorPrice)" : "url(#colorVolume)"
