@@ -102,7 +102,7 @@ export default function Swapinterface() {
             <TabsContent value="buy" className="space-y-4 mt-6">
               <div className="space-y-4">
                 {/* Sell Section */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-none p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">
                       You pay
@@ -163,7 +163,7 @@ export default function Swapinterface() {
                 </div>
 
                 {/* Buy Section */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-none p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">
                       You receive
@@ -220,7 +220,7 @@ export default function Swapinterface() {
             <TabsContent value="sell" className="space-y-4 mt-6">
               <div className="space-y-4">
                 {/* Sell Section */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-none p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">
                       You pay
@@ -281,7 +281,7 @@ export default function Swapinterface() {
                 </div>
 
                 {/* Buy Section */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-none p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">
                       You receive
@@ -340,7 +340,7 @@ export default function Swapinterface() {
           </Tabs>
 
           {/* Swap Info */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mt-6 p-4 bg-blue-50 rounded-none">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Exchange Rate</span>
               <span className="font-medium">

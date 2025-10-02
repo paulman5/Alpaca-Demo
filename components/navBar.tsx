@@ -47,7 +47,7 @@ export default function Navbar() {
           <Link
             href="/auth/login"
             style={{ position: "relative", zIndex: 50 }}
-            className="px-4 py-2 rounded-lg bg-teal-700 text-white hover:bg-teal-800 transition-colors font-semibold"
+            className="px-4 py-2 rounded-none bg-teal-700 text-white hover:bg-teal-800 transition-colors font-semibold"
           >
             Get Started
           </Link>
@@ -85,7 +85,7 @@ export default function Navbar() {
             <Link
               href="/auth/login"
               style={{ position: "relative", zIndex: 50 }}
-              className="px-4 py-2 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+              className="px-4 py-2 rounded-none bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
             >
               Login
             </Link>
@@ -94,7 +94,7 @@ export default function Navbar() {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="block w-full px-4 py-2 rounded-2xl bg-emerald-50 text-emerald-700 font-semibold mt-2 text-left hover:bg-emerald-100 transition-colors focus:outline-none">
+                <button className="block w-full px-4 py-2 rounded-none bg-emerald-50 text-emerald-700 font-semibold mt-2 text-left hover:bg-emerald-100 transition-colors focus:outline-none">
                   {displayName}
                 </button>
               </DropdownMenuTrigger>

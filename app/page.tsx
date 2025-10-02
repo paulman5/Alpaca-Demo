@@ -23,7 +23,7 @@ export default function HomePage() {
         <ProofOfReserveCards />
 
         <div className="max-w-6xl mx-auto px-4">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-emerald-200/30">
+          <div className="bg-white/80 backdrop-blur-sm rounded-none p-8 mb-12 border border-emerald-200/30">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <InvestmentGradeSecuritySection />
               <TransparentReservesSection />

@@ -151,7 +151,7 @@ export function HowItWorksSection() {
             return (
               <div
                 key={index}
-                className="text-center p-6 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                className="text-center p-6 bg-white rounded-none border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
               >
                 <IconComponent
                   className={`w-8 h-8 mx-auto mb-3 ${benefit.color}`}
@@ -167,7 +167,7 @@ export function HowItWorksSection() {
 
         {/* CTA Section */}
         <div className="text-center">
-          <div className="bg-gradient-to-r from-emerald-600 to-blue-600 rounded-2xl p-8 text-white">
+          <div className="bg-gradient-to-r from-emerald-600 to-blue-600 rounded-none p-8 text-white">
             <h3 className="text-2xl font-bold mb-4">
               Ready to Start Earning Stable Yields?
             </h3>

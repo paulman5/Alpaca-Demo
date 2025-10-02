@@ -85,7 +85,7 @@ export default function AboutPage() {
                   alt={member.name}
                   width={350}
                   height={350}
-                  className="rounded-2xl object-cover shadow-xl"
+                  className="rounded-none object-cover shadow-xl"
                   priority
                   style={{
                     aspectRatio: "1 / 1",
@@ -107,7 +107,7 @@ export default function AboutPage() {
                     scale: isHovered ? 1 : 0.98,
                   }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="absolute inset-0 flex items-center justify-center rounded-2xl transition-opacity cursor-pointer focus-visible:ring-4 focus-visible:ring-emerald-400/60 z-10"
+                  className="absolute inset-0 flex items-center justify-center rounded-none transition-opacity cursor-pointer focus-visible:ring-4 focus-visible:ring-emerald-400/60 z-10"
                   aria-label={`View ${member.name}'s LinkedIn`}
                   style={{
                     background: "rgba(30, 41, 59, 0.45)",

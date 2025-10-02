@@ -278,7 +278,7 @@ export default function ProofOfReservePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-none">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <span className="font-medium">Reserves Verified</span>
@@ -291,7 +291,7 @@ export default function ProofOfReservePage() {
                     </Badge>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-none">
                     <div className="flex items-center gap-2">
                       <Shield className="h-5 w-5 text-blue-600" />
                       <span className="font-medium">Custodian Status</span>
@@ -322,7 +322,7 @@ export default function ProofOfReservePage() {
               <div className="space-y-6">
                 {/* Summary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-center p-4 bg-purple-50 rounded-none">
                     <div className="text-2xl font-bold text-purple-600">
                       {totalSupplyLoading || priceLoading ? (
                         <RefreshCw className="h-5 w-5 animate-spin text-gray-400 mx-auto" />
@@ -332,7 +332,7 @@ export default function ProofOfReservePage() {
                     </div>
                     <div className="text-sm text-gray-600">Total Value</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-center p-4 bg-blue-50 rounded-none">
                     <div className="text-2xl font-bold text-blue-600">
                       {priceLoading ? (
                         <RefreshCw className="h-5 w-5 animate-spin text-gray-400 mx-auto" />
@@ -342,7 +342,7 @@ export default function ProofOfReservePage() {
                     </div>
                     <div className="text-sm text-gray-600">Current Price</div>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-center p-4 bg-green-50 rounded-none">
                     <div className="text-2xl font-bold text-green-600">
                       {lqdYieldLoading ? (
                         <RefreshCw className="h-5 w-5 animate-spin text-gray-400 mx-auto" />

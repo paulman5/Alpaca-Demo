@@ -61,7 +61,7 @@ const CustomConnectButton = () => {
                 return (
                   <button
                     onClick={openConnectModal}
-                    className="text-white text-sm focus:outline-none hover:text-white bg-black cursor-pointer rounded-xl px-3 py-2 transition-colors border border-gray-600/50 hover:border-emerald-700 hover:!bg-emerald-700"
+                    className="text-white text-sm focus:outline-none hover:text-white bg-black cursor-pointer rounded-none px-3 py-2 transition-colors border border-gray-600/50 hover:border-emerald-700 hover:!bg-emerald-700"
                   >
                     Connect Wallet
                   </button>
@@ -71,8 +71,8 @@ const CustomConnectButton = () => {
               return (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex focus:outline-none text-black items-center gap-2 bg-emerald-700/20 hover:bg-emerald-700/35 rounded-xl py-0.5 pl-0.5 pr-4 border-0 border-gray-600/50 transition-colors">
-                      <div className="w-8 h-8 rounded-xl">
+                    <button className="flex focus:outline-none text-black items-center gap-2 bg-emerald-700/20 hover:bg-emerald-700/35 rounded-none py-0.5 pl-0.5 pr-4 border-0 border-gray-600/50 transition-colors">
+                      <div className="w-8 h-8 rounded-none">
                         <Image
                           src="/1.png"
                           className="w-full h-full"

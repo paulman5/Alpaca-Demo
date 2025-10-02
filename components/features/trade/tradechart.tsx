@@ -16,7 +16,7 @@ export default function TradeChart({
   return (
     <div className="mb-8">
       {loading ? (
-        <div className="h-[400px] flex items-center justify-center bg-slate-50 rounded-xl">
+        <div className="h-[400px] flex items-center justify-center bg-slate-50 rounded-none">
           <div className="text-center">
             <LoadingSpinner size="lg" text="Loading chart data..." />
           </div>

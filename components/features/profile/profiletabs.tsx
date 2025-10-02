@@ -34,14 +34,14 @@ export default function ProfileTabs() {
 
   return (
     <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-      <div className={`bg-white rounded-2xl p-2 shadow-md border-0`}>
+      <div className={`bg-white rounded-none p-2 shadow-md border-0`}>
         <TabsList className="flex justify-center w-full bg-transparent gap-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <TabsTrigger
                   value="profile"
-                  className="flex items-center gap-2 data-[state=active]:bg-slate-100 rounded-xl opacity-60 cursor-not-allowed"
+                  className="flex items-center gap-2 data-[state=active]:bg-slate-100 rounded-none opacity-60 cursor-not-allowed"
                   tabIndex={-1}
                   aria-disabled="true"
                 >
@@ -56,7 +56,7 @@ export default function ProfileTabs() {
           </TooltipProvider>
           <TabsTrigger
             value="kyc"
-            className="flex items-center gap-2 data-[state=active]:bg-slate-100 rounded-xl"
+            className="flex items-center gap-2 data-[state=active]:bg-slate-100 rounded-none"
           >
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Verification</span>

@@ -63,7 +63,7 @@ export default function StockChart({
   if (!data || data.length === 0) {
     return (
       <div
-        className="flex items-center justify-center bg-gray-50 rounded-lg"
+        className="flex items-center justify-center bg-gray-50 rounded-none"
         style={{ height: `${height}px` }}
       >
         <div className="text-center">

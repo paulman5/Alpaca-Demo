@@ -78,7 +78,7 @@ const PortfolioActivity: React.FC<PortfolioActivityProps> = ({
           </div>
         ) : !activities || activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-12 h-12 border-2 border-slate-200 rounded-lg flex items-center justify-center mb-4">
+            <div className="w-12 h-12 border-2 border-slate-200 rounded-none flex items-center justify-center mb-4">
               <Activity className="h-5 w-5 text-slate-400" />
             </div>
             <p className="text-sm text-slate-600 font-medium mb-1">
@@ -110,7 +110,7 @@ const PortfolioActivity: React.FC<PortfolioActivityProps> = ({
                   {/* Type Indicator */}
                   <div className="col-span-1 flex items-center">
                     <div
-                      className={`w-3 h-3 rounded-sm ${
+                      className={`w-3 h-3 rounded-none ${
                         activity.action === "Burned"
                           ? "bg-red-500 shadow-red-500/30"
                           : "bg-emerald-500 shadow-emerald-500/30"

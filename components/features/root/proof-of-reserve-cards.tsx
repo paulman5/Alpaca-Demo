@@ -4,7 +4,7 @@ export function ProofOfReserveCards() {
   return (
     <div className="relative z-10 max-w-6xl mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        <Card className="bg-white/90 backdrop-blur-md border-emerald-200/30 hover:bg-white/95 transition-all duration-300 rounded-2xl shadow-lg">
+        <Card className="bg-white/90 backdrop-blur-md border-emerald-200/30 hover:bg-white/95 transition-all duration-300 rounded-none shadow-lg">
           <CardContent className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -29,7 +29,7 @@ export function ProofOfReserveCards() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white/90 backdrop-blur-md border-emerald-200/30 hover:bg-white/95 transition-all duration-300 rounded-2xl shadow-lg">
+        <Card className="bg-white/90 backdrop-blur-md border-emerald-200/30 hover:bg-white/95 transition-all duration-300 rounded-none shadow-lg">
           <CardContent className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -56,7 +56,7 @@ export function ProofOfReserveCards() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white/90 backdrop-blur-md border-emerald-200/30 hover:bg-white/95 transition-all duration-300 rounded-2xl shadow-lg">
+        <Card className="bg-white/90 backdrop-blur-md border-emerald-200/30 hover:bg-white/95 transition-all duration-300 rounded-none shadow-lg">
           <CardContent className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div>

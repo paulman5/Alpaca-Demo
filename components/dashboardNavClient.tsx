@@ -135,7 +135,7 @@ export function DashboardSidebarNavClient() {
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-gray-600">Network</span>
             <Select value={network} onValueChange={(v) => setNetwork(v as any)}>
-              <SelectTrigger className="h-8 w-[130px] rounded-xl">
+              <SelectTrigger className="h-8 w-[130px] rounded-none">
                 <SelectValue placeholder="Select network" />
               </SelectTrigger>
               <SelectContent>
@@ -149,12 +149,12 @@ export function DashboardSidebarNavClient() {
           {!isConnected ? (
             <Button
               onClick={connect}
-              className="mt-3 bg-black text-white text-sm rounded-2xl px-4 py-2 border border-gray-600/50 hover:bg-black/90 focus:outline-none"
+              className="mt-3 bg-black text-white text-sm rounded-none px-4 py-2 border border-gray-600/50 hover:bg-black/90 focus:outline-none"
             >
               Connect Wallet
             </Button>
           ) : (
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2">
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-none border border-gray-200 bg-gray-50 px-3 py-2">
               <div className="flex min-w-0 items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
                 <div className="flex flex-col min-w-0">
@@ -169,7 +169,7 @@ export function DashboardSidebarNavClient() {
               <Button
                 variant="secondary"
                 onClick={disconnect}
-                className="shrink-0 text-xs rounded-xl"
+                className="shrink-0 text-xs rounded-none"
               >
                 Disconnect
               </Button>

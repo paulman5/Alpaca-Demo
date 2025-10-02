@@ -143,7 +143,7 @@ export default function TradeForm({
           </div>
 
           {/* Toggle Buttons */}
-          <div className="flex bg-slate-100 rounded-lg p-1">
+          <div className="flex bg-slate-100 rounded-none p-1">
             <Button
               variant={tradeType === "buy" ? "success" : "ghost"}
               onClick={() => setTradeType("buy")}
@@ -173,7 +173,7 @@ export default function TradeForm({
 
         <CardContent className="pt-0">
           {/* Market Info Bar */}
-          <div className="mb-6 p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+          <div className="mb-6 p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-none border border-slate-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div>
@@ -236,14 +236,14 @@ export default function TradeForm({
                   value={buyUsdc}
                   onChange={(e) => setBuyUsdc(e.target.value)}
                   placeholder="Enter USDC amount"
-                  className="border border-emerald-200 focus:border-emerald-400 rounded-lg px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
+                  className="border border-emerald-200 focus:border-emerald-400 rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
                 />
               </div>
 
               {buyUsdc && latestPrice && latestPrice > 0 && (
                 <div className="mb-4 space-y-3">
                   {/* Estimation Summary */}
-                  <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100">
+                  <div className="p-4 rounded-none bg-emerald-50 border border-emerald-100">
                     <div className="text-sm text-emerald-700 mb-3 font-medium">
                       Transaction Summary
                     </div>
@@ -278,7 +278,7 @@ export default function TradeForm({
                   </div>
 
                   {/* Risk & Slippage Info */}
-                  <div className="p-3 rounded-lg bg-orange-50 border border-orange-200">
+                  <div className="p-3 rounded-none bg-orange-50 border border-orange-200">
                     <div className="text-xs text-orange-700 space-y-1">
                       <div className="flex justify-between">
                         <span>Max slippage (1%):</span>
@@ -304,7 +304,7 @@ export default function TradeForm({
 
               {/* Verification Warning */}
               {!hasKYCClaim && !kycLoading && (
-                <div className="mb-4 p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <div className="mb-4 p-4 rounded-none bg-amber-50 border border-amber-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="w-4 h-4 text-amber-600" />
                     <span className="text-sm font-medium text-amber-800">
@@ -347,14 +347,14 @@ export default function TradeForm({
                   value={sellToken}
                   onChange={(e) => setSellToken(e.target.value)}
                   placeholder={`Enter S${selectedToken} amount`}
-                  className="border border-blue-200 focus:border-blue-400 rounded-lg px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
+                  className="border border-blue-200 focus:border-blue-400 rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
                 />
               </div>
 
               {sellToken && latestPrice && latestPrice > 0 && (
                 <div className="mb-4 space-y-3">
                   {/* Estimation Summary */}
-                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
+                  <div className="p-4 rounded-none bg-blue-50 border border-blue-100">
                     <div className="text-sm text-blue-700 mb-3 font-medium">
                       Transaction Summary
                     </div>
@@ -397,7 +397,7 @@ export default function TradeForm({
                   </div>
 
                   {/* Risk & Slippage Info */}
-                  <div className="p-3 rounded-lg bg-orange-50 border border-orange-200">
+                  <div className="p-3 rounded-none bg-orange-50 border border-orange-200">
                     <div className="text-xs text-orange-700 space-y-1">
                       <div className="flex justify-between">
                         <span>Min slippage (1%):</span>

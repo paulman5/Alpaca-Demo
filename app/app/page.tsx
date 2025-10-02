@@ -202,7 +202,7 @@ function DashboardPage() {
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-emerald-50 rounded-xl">
+                  <div className="p-2 bg-emerald-50 rounded-none">
                     <IconComponent className="h-5 w-5 text-emerald-600" />
                   </div>
                   {stat.positive !== null && (
@@ -250,7 +250,7 @@ function DashboardPage() {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div
-                    className={`p-3 ${feature.bgColor} rounded-2xl group-hover:scale-110 transition-transform duration-300`}
+                    className={`p-3 ${feature.bgColor} rounded-none group-hover:scale-110 transition-transform duration-300`}
                   >
                     <IconComponent className={`h-6 w-6 ${feature.color}`} />
                   </div>
