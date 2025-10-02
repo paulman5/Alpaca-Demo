@@ -181,7 +181,7 @@ export default function KYCFlow() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-gray-600">
           <p>
-            <strong>KYC (Know Your Customer)</strong> verification is required for certain trading activities.
+            <strong>{`KYC (Know Your Customer)`}</strong> verification is required for certain trading activities.
           </p>
           <ul className="list-disc list-inside space-y-1 ml-4">
             <li>{`Click "Verify KYC" to submit a verification request`}</li>
