@@ -13,8 +13,8 @@ import {
   Shield,
 } from "lucide-react";
 import React from "react";
-import { useIsKycVerified } from "@/hooks/view/onChain/useKycRegistry";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useIsKycVerified } from "@/hooks/aptos/useKycRegistry";
 import {
   Tooltip,
   TooltipContent,

@@ -6,7 +6,7 @@ import PortfolioHoldings from "@/components/features/portfolio/portfolioholdings
 import PortfolioPerformance from "@/components/features/portfolio/portfolioperformance";
 // import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useTokenBalance } from "@/hooks/view/onChain/useAptosToken";
+import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";

@@ -5,10 +5,11 @@ import { useAptosClient } from "./useAptosClient";
 import { useAptosWallet } from "./useAptosWallet";
 
 function formatAptFromOctas(octas: bigint): string {
-  const OCTAS_IN_APT = BigInt(1_000_000_000);
+  // Aptos uses 8 decimal places (octas)
+  const OCTAS_IN_APT = BigInt(100_000_000);
   const whole = octas / OCTAS_IN_APT;
   const fraction = octas % OCTAS_IN_APT;
-  const fractionStr = fraction.toString().padStart(9, "0").replace(/0+$/, "");
+  const fractionStr = fraction.toString().padStart(8, "0").replace(/0+$/, "");
   return fractionStr.length ? `${whole.toString()}.${fractionStr}` : whole.toString();
 }
 

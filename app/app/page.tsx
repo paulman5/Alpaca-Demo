@@ -20,7 +20,7 @@ import {
   PieChart,
   Zap,
 } from "lucide-react";
-import { useTokenBalance } from "@/hooks/view/onChain/useAptosToken";
+import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 // import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";

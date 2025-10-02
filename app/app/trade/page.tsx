@@ -7,7 +7,7 @@ import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
-import { useTokenBalance } from "@/hooks/view/onChain/useAptosToken";
+import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 
 const TOKENS = [{ label: "LQD", value: "LQD" }];
 
