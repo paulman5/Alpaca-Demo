@@ -98,47 +98,53 @@ function PortfolioPage() {
         </div>
       ) : (
         <>
-          <PortfolioSummaryCards
+          <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+            <PortfolioSummaryCards
             portfolioValue={portfolioValue}
             dayChange={dayChange}
             dayChangePercent={dayChangePercent}
             totalReturn={totalReturn}
             totalReturnPercent={totalReturnPercent}
             holdings={holdings}
-          />
+            />
+          </div>
           <Tabs defaultValue="holdings" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-slate-100">
+            <TabsList className="grid w-full grid-cols-3 bg-[#e6f2f2]">
               <TabsTrigger
                 value="holdings"
-                className="data-[state=active]:bg-white"
+                className="data-[state=active]:bg-white data-[state=active]:text-[#004040]"
               >
                 Holdings
               </TabsTrigger>
               <TabsTrigger
                 value="performance"
-                className="data-[state=active]:bg-white"
+                className="data-[state=active]:bg-white data-[state=active]:text-[#004040]"
               >
                 Performance
               </TabsTrigger>
               <TabsTrigger
                 value="activity"
-                className="data-[state=active]:bg-white"
+                className="data-[state=active]:bg-white data-[state=active]:text-[#004040]"
               >
                 Activity
               </TabsTrigger>
             </TabsList>
             <TabsContent value="holdings" className="space-y-6">
-              <PortfolioHoldings
+              <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+                <PortfolioHoldings
                 holdings={holdings}
                 formatNumber={formatNumber}
-              />
+                />
+              </div>
             </TabsContent>
             <TabsContent value="performance" className="space-y-6">
-              <PortfolioPerformance
+              <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+                <PortfolioPerformance
                 holdings={holdings}
                 returns={returns}
                 formatPercent={formatPercent}
-              />
+                />
+              </div>
             </TabsContent>
             {/* <TabsContent value="activity" className="space-y-6">
               <PortfolioActivity

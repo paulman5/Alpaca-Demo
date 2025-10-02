@@ -314,18 +314,29 @@ const TradePage = () => {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto px-2 md:px-0">
-      <TradeHeader />
+      {/* Page banner */}
+      <div className="bg-gradient-to-r from-[#004040] via-[#035a5a] to-[#004040] rounded-none p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_50%)]"></div>
+        <div className="relative z-10">
+          <h1 className="text-2xl md:text-3xl font-bold">Trade</h1>
+          <p className="text-sm md:text-base text-[#cfe7e7] mt-1">Swap tokens and execute trades instantly with low fees.</p>
+        </div>
+      </div>
+
       <TradeTokenSelector
         tokens={TOKENS}
         selectedToken={selectedToken}
         setSelectedToken={setSelectedToken}
       />
-      <TradeChart
-        loading={loading}
-        tokenData={tokenData}
-        selectedToken={selectedToken}
-      />
-      <TradeForm
+      <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+        <TradeChart
+          loading={loading}
+          tokenData={tokenData}
+          selectedToken={selectedToken}
+        />
+      </div>
+      <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+        <TradeForm
         tradeType={tradeType}
         setTradeType={setTradeType}
         selectedToken={selectedToken}
@@ -349,7 +360,8 @@ const TradePage = () => {
         netReceiveUsdc={netReceiveUsdc}
         priceChangePercent={priceChangePercent}
         priceChange={priceChange}
-      />
+        />
+      </div>
 
       {/* Transaction Modal */}
       <TransactionModal
