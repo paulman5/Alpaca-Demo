@@ -164,6 +164,11 @@ const TradePage = () => {
     }
   }, [mdLoading, mdPrice, selectedToken]);
 
+  // Refetch token balance when switching asset or user changes
+  useEffect(() => {
+    void refetchTokenBalance();
+  }, [selectedToken, userAddress, refetchTokenBalance]);
+
   // Use chart data as primary source for price calculations
   const chartLatestPrice =
     tokenData.length > 0 ? tokenData[tokenData.length - 1].close : null;
