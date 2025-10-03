@@ -14,6 +14,7 @@ import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 // import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import { LoadingSpinner } from "@/components/loadingSpinner";
+import { useEffect, useState } from "react";
 
 function PortfolioPage() {
   const { address: userAddress } = useAptosWallet();
@@ -45,6 +46,34 @@ function PortfolioPage() {
     previousClose: goldPrevClose,
     isLoading: goldLoading,
   } = useMarketData("GOLD");
+
+  // GOLD price fallback via Metalprice API (USD per XAU)
+  const [goldUsd, setGoldUsd] = useState<number | null>(null);
+  const [goldUsdLoading, setGoldUsdLoading] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchGold() {
+      setGoldUsdLoading(true);
+      try {
+        const url =
+          "https://api.metalpriceapi.com/v1/latest?api_key=54ee16f25dba8e9c04459a5da94d415e&base=USD&currencies=EUR,XAU,XAG";
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`gold api ${res.status}`);
+        const data = await res.json();
+        const xauPerUsd = Number(data?.rates?.XAU || 0);
+        const usdPerXau = xauPerUsd > 0 ? 1 / xauPerUsd : null;
+        if (!cancelled) setGoldUsd(usdPerXau);
+      } catch (e) {
+        if (!cancelled) setGoldUsd(null);
+      } finally {
+        if (!cancelled) setGoldUsdLoading(false);
+      }
+    }
+    fetchGold();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const { returns, isLoading: returnsLoading } = useReturns("LQD");
   const { username } = useCurrentUser();
@@ -112,8 +141,8 @@ function PortfolioPage() {
       name: "Gold Synthetic",
       shares: Number(goldBal || 0),
       avgPrice: goldPrevClose || 0,
-      currentPrice: goldPrice ?? 0,
-      value: Number(goldBal || 0) * (goldPrice ?? 0),
+      currentPrice: (goldUsd ?? goldPrice) ?? 0,
+      value: Number(goldBal || 0) * ((goldUsd ?? goldPrice) ?? 0),
     },
   ];
 
@@ -138,7 +167,7 @@ function PortfolioPage() {
   }));
 
   const isLoading =
-    balanceLoading || returnsLoading || lqdLoading || tslaLoading || aaplLoading || goldLoading;
+    balanceLoading || returnsLoading || lqdLoading || tslaLoading || aaplLoading || goldLoading || goldUsdLoading;
 
   // Function to refresh portfolio data
   const handleRefresh = () => {
