@@ -48,9 +48,9 @@ export function HeroSection() {
         </div>
 
         {/* Partner Ticker */}
-        <div className="w-full max-w-5xl mx-auto">
+        {/* <div className="w-full max-w-5xl mx-auto">
           <PartnerTicker />
-        </div>
+        </div> */}
       </div>
     </section>
   );
