@@ -232,12 +232,18 @@ const TradePage = () => {
     try {
       // Execute buy order via Aptos module
       console.log("📤 Sending buy order:", amount.toString());
-      await buyAsset(selectedToken, amount.toString());
+      const hash = await buyAsset(selectedToken, amount.toString());
       setBuyUsdc("");
 
-      // Keep modal open for buy transaction to complete
-      // The modal will stay in "waiting" state until the buy transaction is processed
-      console.log("⏳ Buy transaction submitted, keeping modal open...");
+      // Mark as completed immediately after tx submission and refresh balances
+      setTransactionModal((prev) => ({ ...prev, status: "completed" }));
+      try {
+        await Promise.all([refetchTokenBalance(), refetchUSDCBalance()]);
+      } catch {}
+      // Auto-close modal after 3 seconds
+      setTimeout(() => {
+        setTransactionModal((prev) => ({ ...prev, isOpen: false }));
+      }, 6000);
     } catch (error) {
       console.error("❌ Error in buy transaction:", error);
       setTransactionModal((prev) => ({
@@ -301,10 +307,16 @@ const TradePage = () => {
 
     try {
       // Execute sell order via Aptos module
-      await sellAsset(selectedToken, tokenAmount.toString());
+      const hash = await sellAsset(selectedToken, tokenAmount.toString());
       setSellToken("");
-
-      console.log("⏳ Sell transaction submitted, keeping modal open...");
+      // Mark as completed and refresh balances
+      setTransactionModal((prev) => ({ ...prev, status: "completed" }));
+      try {
+        await Promise.all([refetchTokenBalance(), refetchUSDCBalance()]);
+      } catch {}
+      setTimeout(() => {
+        setTransactionModal((prev) => ({ ...prev, isOpen: false }));
+      }, 3000);
     } catch (error) {
       console.error("❌ Error in sell transaction:", error);
       setTransactionModal((prev) => ({

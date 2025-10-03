@@ -12,9 +12,8 @@ import {
   TrendingUp,
   Shield,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
-import { useIsKycVerified } from "@/hooks/aptos/useKycRegistry";
 import {
   Tooltip,
   TooltipContent,
@@ -86,9 +85,34 @@ export default function TradeForm({
   priceChange,
 }: TradeFormProps) {
   const { address: userAddress } = useAptosWallet();
-  const { isVerified: hasKYCClaim, isLoading: kycLoading } = useIsKycVerified(
-    userAddress ?? undefined,
-  );
+
+  // KYC status via external API (align with KYC page)
+  const [hasKYCClaim, setHasKYCClaim] = useState<boolean>(false);
+  const [kycLoading, setKycLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkKyc = async () => {
+      if (!userAddress) {
+        setHasKYCClaim(false);
+        return;
+      }
+      setKycLoading(true);
+      try {
+        const res = await fetch(
+          `https://92a7be451ddb4f83627f81b188f8137bba80a65d-3000.dstack-prod5.phala.network/kyc/status/${userAddress}`,
+          { cache: "no-store" },
+        );
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        setHasKYCClaim(Boolean(data?.isVerified === true));
+      } catch (_e) {
+        setHasKYCClaim(false);
+      } finally {
+        setKycLoading(false);
+      }
+    };
+    void checkKyc();
+  }, [userAddress]);
 
   // Determine if buy button should be disabled
   const isBuyDisabled =
