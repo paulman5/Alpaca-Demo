@@ -118,6 +118,10 @@ export default function TradeForm({
   const isBuyDisabled =
     !buyUsdc || isOrderPending || !hasKYCClaim || kycLoading;
 
+  // Display helper: LQD uses 15 decimals in UI
+  const displayTokenBalance =
+    selectedToken === "LQD" ? tokenBalance / 1_000_000 : tokenBalance;
+
   return (
     <div className="w-full max-w-xl mx-auto">
       <Card className="shadow-lg border border-[#004040]/15 bg-white hover:shadow-xl transition-shadow duration-200 rounded-none">
@@ -141,7 +145,7 @@ export default function TradeForm({
                 </CardDescription>
               </div>
             </div>
-            <div className="text-right">
+              <div className="text-right">
               <div className="text-xs text-slate-500">
                 {tradeType === "buy"
                   ? "USDC Balance"
@@ -160,14 +164,14 @@ export default function TradeForm({
                       : `${usdcBalance.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} USDC`
                   : balanceLoading
                     ? "Loading..."
-                    : `${tokenBalance.toLocaleString()} S${selectedToken}`}
+                      : `${displayTokenBalance.toLocaleString()} S${selectedToken}`}
               </div>
               {/* Show secondary balance */}
               <div className="text-xs text-slate-400 mt-1">
                 {tradeType === "buy"
                   ? balanceLoading
                     ? "Loading..."
-                    : `${tokenBalance.toLocaleString()} S${selectedToken}`
+                    : `${displayTokenBalance.toLocaleString()} S${selectedToken}`
                   : usdcLoading
                     ? "Loading..."
                     : usdcError

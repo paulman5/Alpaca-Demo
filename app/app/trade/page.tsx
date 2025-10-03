@@ -207,6 +207,11 @@ const TradePage = () => {
   const netReceiveTokens = estimatedTokens
     ? (parseFloat(estimatedTokens) * (1 - tradingFee)).toFixed(4)
     : "";
+  // Display helper for net received tokens (LQD uses 15 decimals)
+  const displayNetReceiveTokens =
+    selectedToken === "LQD" && netReceiveTokens
+      ? (parseFloat(netReceiveTokens) / 1_000_000_000_000_000).toFixed(6)
+      : netReceiveTokens;
   const netReceiveUsdc = estimatedUsdc
     ? (parseFloat(estimatedUsdc) * (1 - tradingFee)).toFixed(2)
     : "";
@@ -225,7 +230,7 @@ const TradePage = () => {
       status: "waiting",
       transactionType: "buy",
       amount: `${buyUsdc} USDC`,
-      receivedAmount: netReceiveTokens,
+      receivedAmount: displayNetReceiveTokens,
       error: "",
     });
 
