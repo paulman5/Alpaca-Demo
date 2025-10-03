@@ -60,7 +60,7 @@ const TradePage = () => {
     isLoading: usdcLoading,
     error: usdcErr,
     refetch: refetchUSDCBalance,
-  } = useFaBalance(userAddress || undefined, "USDC");
+  } = useFaBalance(userAddress || undefined, "USDC_NEW");
   const usdcBalance = usdcFormatted ? parseFloat(usdcFormatted) : 0;
   const usdcError = Boolean(usdcErr);
 

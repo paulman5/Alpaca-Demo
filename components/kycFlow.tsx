@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
-import { useIsKycVerified, useKycRegistry } from "@/hooks/aptos/useKycRegistry";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +10,55 @@ import { toast } from "sonner";
 
 export default function KYCFlow() {
   const { address, isConnected } = useAptosWallet();
-  const { isVerified, isLoading, error, refetch } = useIsKycVerified(address || undefined);
-  const { setVerified, isPending, error: txError, txHash } = useKycRegistry();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  // Function to check KYC status using external API
+  const checkKycStatus = async (userAddress: string): Promise<boolean> => {
+    const response = await fetch(
+      `https://92a7be451ddb4f83627f81b188f8137bba80a65d-3000.dstack-prod5.phala.network/kyc/status/${userAddress}`
+    );
+    
+    console.log("kyc status: ", response);
+    if (!response.ok) {
+      throw new Error(`KYC status check failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+
+    console.log("kyc status data: ", data);
+    return data.isVerified === true;
+  };
+
+  // Function to refetch KYC status
+  const refetch = async () => {
+    if (!address) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const verified = await checkKycStatus(address);
+      setIsVerified(verified);
+      return { data: verified };
+    } catch (e: any) {
+      setError(e?.message || "Failed to check KYC status");
+      return { data: null };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load KYC status on component mount and when address changes
+  useEffect(() => {
+    if (address) {
+      refetch();
+    } else {
+      setIsVerified(null);
+      setError(null);
+    }
+  }, [address]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -29,27 +74,55 @@ export default function KYCFlow() {
 
   const handleVerify = async () => {
     if (!address) return;
+    setIsPending(true);
     try {
-      await setVerified(address, true);
-      toast.success("KYC verification submitted successfully!");
-      // Refresh status after a short delay
-      setTimeout(() => refetch(), 2000);
+      // Call external KYC verification API first
+      const resp = await fetch(
+        "https://92a7be451ddb4f83627f81b188f8137bba80a65d-3000.dstack-prod5.phala.network/kyc/verify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userAddress: address }),
+        },
+      );
+      if (!resp.ok) {
+        const msg = await resp.text();
+        throw new Error(`KYC API failed: ${resp.status} ${msg}`);
+      }
+      
+      // Poll external API KYC status every 2s up to 30s, then resolve
+      const pollingToastId = toast.loading("Verification submitted. Checking status...");
+      const startedAt = Date.now();
+      const POLL_INTERVAL_MS = 2000;
+      const TIMEOUT_MS = 30000;
+      const poll = setInterval(async () => {
+        try {
+          const verified = await checkKycStatus(address);
+          if (verified) {
+            clearInterval(poll);
+            toast.dismiss(pollingToastId);
+            toast.success("KYC verified successfully!");
+            setIsVerified(true);
+            setIsPending(false);
+          } else if (Date.now() - startedAt > TIMEOUT_MS) {
+            clearInterval(poll);
+            toast.dismiss(pollingToastId);
+            toast("Verification still processing. Please check again shortly.");
+            setIsPending(false);
+          }
+        } catch (e: any) {
+          clearInterval(poll);
+          toast.dismiss(pollingToastId);
+          toast.error(e?.message || "Failed to check KYC status");
+          setIsPending(false);
+        }
+      }, POLL_INTERVAL_MS);
     } catch (e: any) {
       toast.error(e?.message || "Failed to submit KYC verification");
+      setIsPending(false);
     }
   };
 
-  const handleUnverify = async () => {
-    if (!address) return;
-    try {
-      await setVerified(address, false);
-      toast.success("KYC verification removed");
-      // Refresh status after a short delay
-      setTimeout(() => refetch(), 2000);
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to remove KYC verification");
-    }
-  };
 
   if (!isConnected) {
     return (
@@ -81,7 +154,7 @@ export default function KYCFlow() {
             KYC Verification Status
           </CardTitle>
           <CardDescription>
-            Your current KYC verification status on the Aptos network.
+            Your current KYC verification status.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -118,18 +191,6 @@ export default function KYCFlow() {
             </div>
           )}
 
-          {txError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-              <strong>Transaction Error:</strong> {txError}
-            </div>
-          )}
-
-          {txHash && (
-            <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
-              <strong>Transaction Hash:</strong> {txHash}
-            </div>
-          )}
-
           <div className="flex gap-3">
             <Button
               onClick={handleRefresh}
@@ -145,19 +206,7 @@ export default function KYCFlow() {
               Refresh Status
             </Button>
 
-            {isVerified ? (
-              <Button
-                onClick={handleUnverify}
-                isDisabled={isPending}
-                variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50"
-              >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : null}
-                Remove Verification
-              </Button>
-            ) : (
+            {!isVerified && (
               <Button
                 onClick={handleVerify}
                 isDisabled={isPending}
@@ -185,9 +234,9 @@ export default function KYCFlow() {
           </p>
           <ul className="list-disc list-inside space-y-1 ml-4">
             <li>{`Click "Verify KYC" to submit a verification request`}</li>
-            <li>Your verification status is stored on the Aptos blockchain</li>
+            <li>Your verification status is managed through our secure API</li>
             <li>Verified users can access enhanced trading features</li>
-            <li>You can remove verification at any time</li>
+            <li>Once verified, your KYC status is permanent</li>
           </ul>
           <p className="text-xs text-gray-500 mt-4">
             Note: This is a simplified demo implementation. In production, KYC would involve 
