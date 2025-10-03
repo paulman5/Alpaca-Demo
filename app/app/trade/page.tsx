@@ -137,9 +137,32 @@ const TradePage = () => {
 
   useEffect(() => {
     // sync local state loading to hook loading for UI
-    setPriceLoading(mdLoading);
-    setCurrentPrice(mdPrice ?? null);
-  }, [mdLoading, mdPrice]);
+    // Special-case GOLD using Metalprice API if selected
+    async function loadGold() {
+      setPriceLoading(true);
+      try {
+        const url =
+          "https://api.metalpriceapi.com/v1/latest?api_key=54ee16f25dba8e9c04459a5da94d415e&base=USD&currencies=EUR,XAU,XAG";
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`gold api ${res.status}`);
+        const data = await res.json();
+        const xauPerUsd = Number(data?.rates?.XAU || 0);
+        const usdPerXau = xauPerUsd > 0 ? 1 / xauPerUsd : null;
+        setCurrentPrice(usdPerXau);
+      } catch (e) {
+        setCurrentPrice(null);
+      } finally {
+        setPriceLoading(false);
+      }
+    }
+
+    if (selectedToken === "GOLD") {
+      void loadGold();
+    } else {
+      setPriceLoading(mdLoading);
+      setCurrentPrice(mdPrice ?? null);
+    }
+  }, [mdLoading, mdPrice, selectedToken]);
 
   // Use chart data as primary source for price calculations
   const chartLatestPrice =
@@ -320,6 +343,8 @@ const TradePage = () => {
         tradeType={tradeType}
         setTradeType={setTradeType}
         selectedToken={selectedToken}
+        setSelectedToken={setSelectedToken}
+        tokens={TOKENS}
         buyUsdc={buyUsdc}
         setBuyUsdc={setBuyUsdc}
         sellToken={sellToken}

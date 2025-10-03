@@ -22,11 +22,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { LoadingSpinner } from "@/components/loadingSpinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type TradeFormProps = {
   tradeType: "buy" | "sell";
   setTradeType: (type: "buy" | "sell") => void;
   selectedToken: string;
+  setSelectedToken: (v: string) => void;
+  tokens: { label: string; value: string }[];
   buyUsdc: string;
   setBuyUsdc: (v: string) => void;
   sellToken: string;
@@ -53,6 +62,8 @@ export default function TradeForm({
   tradeType,
   setTradeType,
   selectedToken,
+  setSelectedToken,
+  tokens,
   buyUsdc,
   setBuyUsdc,
   sellToken,
@@ -172,6 +183,22 @@ export default function TradeForm({
         </CardHeader>
 
         <CardContent className="pt-0">
+          {/* Asset Select moved below header for cleaner layout */}
+          <div className="mb-5">
+            <label className="block text-xs text-slate-500 mb-1">Asset</label>
+            <Select value={selectedToken} onValueChange={setSelectedToken}>
+              <SelectTrigger className="rounded-none border-[#004040]/30 focus:ring-[#004040] w-full bg-white">
+                <SelectValue placeholder="Select asset" />
+              </SelectTrigger>
+              <SelectContent className="rounded-none">
+                {tokens.map((t) => (
+                  <SelectItem key={t.value} value={t.value} className="cursor-pointer">
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {/* Market Info Bar */}
           <div className="mb-6 p-3 bg-gradient-to-r from-[#f5faf9] to-[#eef6f6] rounded-none border border-[#004040]/15">
             <div className="flex items-center justify-between">
