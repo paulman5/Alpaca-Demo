@@ -7,10 +7,15 @@ import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
-import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useFaBalance } from "@/hooks/aptos/useFaBalance";
+import { useMarketData } from "@/hooks/api/useMarketData";
 
-const TOKENS = [{ label: "LQD", value: "LQD" }];
+const TOKENS = [
+  { label: "LQD", value: "LQD" },
+  { label: "TSLA", value: "TSLA" },
+  { label: "AAPL", value: "AAPL" },
+  { label: "GOLD", value: "GOLD" },
+];
 
 const TradePage = () => {
   const [selectedToken, setSelectedToken] = useState("LQD");
@@ -26,6 +31,9 @@ const TradePage = () => {
   );
   const [etfData, setEtfData] = useState<any>(null);
 
+  // Per-asset market data
+  const { price: mdPrice, previousClose: mdPrevClose, isLoading: mdLoading } = useMarketData(selectedToken);
+
   // Transaction modal state
   const [transactionModal, setTransactionModal] = useState({
     isOpen: false,
@@ -38,11 +46,13 @@ const TradePage = () => {
 
   const { address: userAddress } = useAptosWallet();
   const {
-    balance: tokenBalance,
+    formatted: tokenFormatted,
+    decimals: tokenDecimals,
     isLoading: balanceLoading,
-    isError: _balanceError,
+    error: _balanceError,
     refetch: refetchTokenBalance,
-  } = useTokenBalance(userAddress ?? undefined);
+  } = useFaBalance(userAddress || undefined, selectedToken as any);
+  const tokenBalance = tokenFormatted ? parseFloat(tokenFormatted) : 0;
   const { buyAsset, sellAsset, isPending: isOrderPending, error: orderError } =
     useAptosOrders();
   const {
@@ -126,46 +136,10 @@ const TradePage = () => {
   }, [selectedToken]);
 
   useEffect(() => {
-    let isMounted = true;
-    let lastKnownPrice: number | null = null;
-
-    async function fetchPriceData() {
-      try {
-        setPriceLoading(true);
-        const json = await clientCacheHelpers.fetchMarketData(selectedToken);
-        if (!isMounted) return;
-
-        if (json.price && json.price > 0) {
-          // Only update if price has actually changed
-          if (lastKnownPrice !== json.price) {
-            setCurrentPrice(json.price);
-            lastKnownPrice = json.price;
-          }
-        } else {
-          setCurrentPrice(null); // No valid price data
-        }
-      } catch (e) {
-        if (isMounted) {
-          setCurrentPrice(null); // Error fetching price
-        }
-      } finally {
-        if (isMounted) {
-          setPriceLoading(false);
-        }
-      }
-    }
-
-    // Initial fetch
-    fetchPriceData();
-
-    // Refetch every 5 minutes to reduce Vercel compute usage
-    const interval = setInterval(fetchPriceData, 5 * 60 * 1000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [selectedToken]);
+    // sync local state loading to hook loading for UI
+    setPriceLoading(mdLoading);
+    setCurrentPrice(mdPrice ?? null);
+  }, [mdLoading, mdPrice]);
 
   // Use chart data as primary source for price calculations
   const chartLatestPrice =
@@ -174,7 +148,7 @@ const TradePage = () => {
     tokenData.length > 1 ? tokenData[tokenData.length - 2].close : null;
 
   // Use currentPrice (from market data API) as fallback only if chart data is not available
-  const latestPrice = chartLatestPrice || currentPrice;
+  const latestPrice = chartLatestPrice || currentPrice || mdPrice || null;
   const prevPrice =
     chartPrevPrice ||
     (tokenData.length > 0
@@ -280,8 +254,9 @@ const TradePage = () => {
       return;
     }
 
-    // Multiply by 18 decimals for token amount (u128)
-    const tokenAmount = BigInt(Math.floor(sellTokenAmount * 1e18));
+    // Multiply by token decimals for amount (u128)
+    const pow = Math.pow(10, tokenDecimals || 6);
+    const tokenAmount = BigInt(Math.floor(sellTokenAmount * pow));
 
     const estimatedUsdcAmount =
       latestPrice > 0 ? sellTokenAmount * latestPrice : 0;
