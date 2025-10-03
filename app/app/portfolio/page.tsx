@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useFaBalance } from "@/hooks/aptos/useFaBalance";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 // import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
@@ -23,12 +24,27 @@ function PortfolioPage() {
     refetch: refetchTokenBalance,
   } = useTokenBalance(userAddress ?? undefined);
 
+  // Fetch per-asset market data
   const {
-    price: currentPrice,
-    previousClose,
-    isLoading: priceLoading,
-    error: priceError,
+    price: lqdPrice,
+    previousClose: lqdPrevClose,
+    isLoading: lqdLoading,
   } = useMarketData("LQD");
+  const {
+    price: tslaPrice,
+    previousClose: tslaPrevClose,
+    isLoading: tslaLoading,
+  } = useMarketData("TSLA");
+  const {
+    price: aaplPrice,
+    previousClose: aaplPrevClose,
+    isLoading: aaplLoading,
+  } = useMarketData("AAPL");
+  const {
+    price: goldPrice,
+    previousClose: goldPrevClose,
+    isLoading: goldLoading,
+  } = useMarketData("GOLD");
 
   const { returns, isLoading: returnsLoading } = useReturns("LQD");
   const { username } = useCurrentUser();
@@ -47,10 +63,65 @@ function PortfolioPage() {
   };
   const formatPercent = (num: number) => num.toFixed(2);
 
-  const portfolioValue =
-    tokenBalance && currentPrice ? tokenBalance * currentPrice : 0;
-  const previousDayValue =
-    tokenBalance && previousClose ? tokenBalance * previousClose : 0;
+  // Additional FA balances (SpoutTokenV2)
+  const { formatted: lqdBal } = useFaBalance(userAddress || undefined, "LQD");
+  const { formatted: tslaBal } = useFaBalance(userAddress || undefined, "TSLA");
+  const { formatted: aaplBal } = useFaBalance(userAddress || undefined, "AAPL");
+  const { formatted: goldBal } = useFaBalance(userAddress || undefined, "GOLD");
+
+  // Build holdings from FA balances; use LQD price as placeholder for value
+  type Holding = {
+    symbol: string;
+    name: string;
+    shares: number;
+    avgPrice: number;
+    currentPrice: number;
+    value: number;
+    dayChange: number;
+    totalReturn: number;
+    allocation: number;
+  };
+
+  const baseHoldings: Omit<Holding, "dayChange" | "totalReturn" | "allocation">[] = [
+    {
+      symbol: "LQD",
+      name: "Spout US Corporate Bond Token",
+      shares: Number(lqdBal || 0),
+      avgPrice: lqdPrevClose || 0,
+      currentPrice: lqdPrice ?? 0,
+      value: Number(lqdBal || 0) * (lqdPrice ?? 0),
+    },
+    {
+      symbol: "TSLA",
+      name: "Tesla Synthetic",
+      shares: Number(tslaBal || 0),
+      avgPrice: tslaPrevClose || 0,
+      currentPrice: tslaPrice ?? 0,
+      value: Number(tslaBal || 0) * (tslaPrice ?? 0),
+    },
+    {
+      symbol: "AAPL",
+      name: "Apple Synthetic",
+      shares: Number(aaplBal || 0),
+      avgPrice: aaplPrevClose || 0,
+      currentPrice: aaplPrice ?? 0,
+      value: Number(aaplBal || 0) * (aaplPrice ?? 0),
+    },
+    {
+      symbol: "GOLD",
+      name: "Gold Synthetic",
+      shares: Number(goldBal || 0),
+      avgPrice: goldPrevClose || 0,
+      currentPrice: goldPrice ?? 0,
+      value: Number(goldBal || 0) * (goldPrice ?? 0),
+    },
+  ];
+
+  const portfolioValue = baseHoldings.reduce((sum, h) => sum + (h.value || 0), 0);
+  const previousDayValue = baseHoldings.reduce(
+    (sum, h) => sum + (h.shares || 0) * (h.avgPrice || 0),
+    0,
+  );
   const dayChange = portfolioValue - previousDayValue;
   const dayChangePercent =
     previousDayValue > 0
@@ -59,21 +130,15 @@ function PortfolioPage() {
   const totalReturn = dayChange;
   const totalReturnPercent = dayChangePercent;
 
-  const holdings = [
-    {
-      symbol: "SLQD",
-      name: "Spout US Corporate Bond Token",
-      shares: tokenBalance || 0,
-      avgPrice: previousClose || 0,
-      currentPrice: currentPrice ?? 0,
-      value: portfolioValue,
-      dayChange: dayChangePercent, // number, not formatted string
-      totalReturn: totalReturnPercent, // number, not formatted string
-      allocation: 100,
-    },
-  ];
+  const holdings: Holding[] = baseHoldings.map((h) => ({
+    ...h,
+    dayChange: dayChangePercent,
+    totalReturn: totalReturnPercent,
+    allocation: portfolioValue > 0 ? Math.round((h.value / portfolioValue) * 100) : 0,
+  }));
 
-  const isLoading = balanceLoading || priceLoading || returnsLoading;
+  const isLoading =
+    balanceLoading || returnsLoading || lqdLoading || tslaLoading || aaplLoading || goldLoading;
 
   // Function to refresh portfolio data
   const handleRefresh = () => {

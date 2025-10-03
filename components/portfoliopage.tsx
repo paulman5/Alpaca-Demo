@@ -23,6 +23,7 @@ import Link from "next/link";
 import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useFaBalance } from "@/hooks/aptos/useFaBalance";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import {
   Tooltip,
@@ -53,6 +54,12 @@ export default function PortfolioPage() {
 
   const { username, loading } = useCurrentUser();
 
+  // Additional token balances via FA view (module SpoutTokenV2)
+  const { formatted: lqdBal } = useFaBalance(userAddress || undefined, "LQD");
+  const { formatted: tslaBal } = useFaBalance(userAddress || undefined, "TSLA");
+  const { formatted: aaplBal } = useFaBalance(userAddress || undefined, "AAPL");
+  const { formatted: goldBal } = useFaBalance(userAddress || undefined, "GOLD");
+
   // Recent activity temporarily disabled - will implement with Aptos hooks
   const activities: any[] = [];
   const activitiesLoading = false;
@@ -72,23 +79,7 @@ export default function PortfolioPage() {
     return num.toFixed(2);
   };
 
-  // Portfolio data using actual token balance and market price
-  const portfolioValue =
-    tokenBalance && currentPrice ? tokenBalance * currentPrice : 0;
-
-  // Calculate daily change based on previous close
-  const previousDayValue =
-    tokenBalance && previousClose ? tokenBalance * previousClose : 0;
-
-  const dayChange = portfolioValue - previousDayValue;
-  const dayChangePercent =
-    previousDayValue > 0
-      ? ((portfolioValue - previousDayValue) / previousDayValue) * 100
-      : 0;
-
-  // Calculate total return based on current market price vs previous close
-  const totalReturn = dayChange; // Use the same daily change value
-  const totalReturnPercent = dayChangePercent; // Use the same percentage
+  // Holdings derived below will be used to compute portfolio summaries
 
   console.log("Portfolio return information", {
     tokenBalance,
@@ -96,19 +87,75 @@ export default function PortfolioPage() {
     previousClose,
   });
 
-  const holdings = [
+  type HoldingBase = {
+    symbol: string;
+    name: string;
+    shares: number;
+    avgPrice: number;
+    currentPrice: number;
+    value: number;
+  };
+
+  type Holding = HoldingBase & {
+    dayChange: number;
+    totalReturn: number;
+    allocation: number;
+  };
+
+  const baseHoldings: HoldingBase[] = [
     {
-      symbol: "SLQD",
+      symbol: "LQD",
       name: "Spout US Corporate Bond Token",
-      shares: tokenBalance || 0,
+      shares: Number(lqdBal || 0),
       avgPrice: previousClose || 0,
       currentPrice: currentPrice ?? 0,
-      value: portfolioValue,
-      dayChange: dayChangePercent, // number, not formatted string
-      totalReturn: totalReturnPercent, // number, not formatted string
-      allocation: 100,
+      value: (Number(lqdBal || 0)) * (currentPrice ?? 0),
+    },
+    {
+      symbol: "TSLA",
+      name: "Tesla Synthetic",
+      shares: Number(tslaBal || 0),
+      avgPrice: previousClose || 0,
+      currentPrice: currentPrice ?? 0,
+      value: (Number(tslaBal || 0)) * (currentPrice ?? 0),
+    },
+    {
+      symbol: "AAPL",
+      name: "Apple Synthetic",
+      shares: Number(aaplBal || 0),
+      avgPrice: previousClose || 0,
+      currentPrice: currentPrice ?? 0,
+      value: (Number(aaplBal || 0)) * (currentPrice ?? 0),
+    },
+    {
+      symbol: "GOLD",
+      name: "Gold Synthetic",
+      shares: Number(goldBal || 0),
+      avgPrice: previousClose || 0,
+      currentPrice: currentPrice ?? 0,
+      value: (Number(goldBal || 0)) * (currentPrice ?? 0),
     },
   ];
+
+  // Compute totals from all holdings
+  const portfolioValue: number = baseHoldings.reduce((sum: number, h: HoldingBase) => sum + (h.value || 0), 0);
+  const previousDayValue: number = baseHoldings.reduce(
+    (sum: number, h: HoldingBase) => sum + (h.shares || 0) * (h.avgPrice || 0),
+    0,
+  );
+  const dayChange: number = portfolioValue - previousDayValue;
+  const dayChangePercent: number = previousDayValue > 0 ? (dayChange / previousDayValue) * 100 : 0;
+  const totalReturn: number = dayChange;
+  const totalReturnPercent: number = dayChangePercent;
+
+  // Compute allocation based on value proportion
+  const totalVal: number = portfolioValue || 1; // prevent division by zero
+  const holdings: Holding[] = baseHoldings.map((h) => ({
+    ...h,
+    dayChange: dayChangePercent,
+    totalReturn: totalReturnPercent,
+    allocation: totalVal > 0 ? Math.round(((h.value || 0) / totalVal) * 100) : 0,
+  }));
 
   // Show loading spinner overlay but keep the blue dashboard background
   const isLoading = balanceLoading || priceLoading || returnsLoading;
