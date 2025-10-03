@@ -8,6 +8,7 @@ import TransactionModal from "@/components/ui/transaction-modal";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
 import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
+import { useFaBalance } from "@/hooks/aptos/useFaBalance";
 
 const TOKENS = [{ label: "LQD", value: "LQD" }];
 
@@ -44,10 +45,14 @@ const TradePage = () => {
   } = useTokenBalance(userAddress ?? undefined);
   const { buyAsset, sellAsset, isPending: isOrderPending, error: orderError } =
     useAptosOrders();
-  const usdcBalance = 0;
-  const usdcLoading = false;
-  const usdcError = undefined as unknown as boolean;
-  const refetchUSDCBalance = () => Promise.resolve({ data: undefined as any });
+  const {
+    formatted: usdcFormatted,
+    isLoading: usdcLoading,
+    error: usdcErr,
+    refetch: refetchUSDCBalance,
+  } = useFaBalance(userAddress || undefined, "USDC");
+  const usdcBalance = usdcFormatted ? parseFloat(usdcFormatted) : 0;
+  const usdcError = Boolean(usdcErr);
 
   // Monitor order transaction state
   useEffect(() => {

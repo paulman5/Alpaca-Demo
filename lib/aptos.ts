@@ -9,7 +9,7 @@ const ENV = (typeof process !== "undefined" ? process.env : {}) as Record<string
 
 export const APTOS_PUBLISHER_ADDRESS =
   ENV.MODULE_PUBLISHER_ACCOUNT_ADDRESS ||
-  "0x55816489757de1d92999dad0629734b877a22455a7fe05e1de36645389646ceb";
+  "0x59affcd91dd0fae47f7504f827c16482f3e7839974c8a370594de284ad043b4f";
 
 // Fully qualified module name, e.g., "0xabc::SpoutToken"
 export const APTOS_MODULE =
