@@ -6,7 +6,7 @@ import { useAptosClient } from "./useAptosClient";
 // Simple FA balance hook specialized for USDC in simpleToken module (6 decimals)
 const MODULE_ADDRESS_V2 =
   (typeof process !== "undefined" && process.env.NEXT_PUBLIC_SPOUT_MODULE_ADDRESS_V2) ||
-  "0xcd68ac951e1b46bfd2452723998fbdf47f88843925b555547372e64862f6e0d7";
+  "0x27220ac73da9851e597d9a016baa842b7c33b064f322da7ca24230ad5e606554";
 
 function pow10BigInt(decimals: number): bigint {
   let result = BigInt("1");
