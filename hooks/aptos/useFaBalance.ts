@@ -9,7 +9,7 @@ const MODULE_ADDRESS =
   "0xf21ca0578f286a0ce5e9f43eab0387a9b7ee1b9ffd1f4634a772d415561fa0fd";
 const MODULE_ADDRESS_V2 =
   (typeof process !== "undefined" && process.env.NEXT_PUBLIC_SPOUT_MODULE_ADDRESS_V2) ||
-  "0xc50c45c8cf451cf262827f258bba2254c94487311c326fa097ce30c39beda4ea";
+  "0x00bbc6e30a13c1b3c20b3968857ea8b9c9a4f35a8d901d20bb14d608d27d0513";
 // Decimal map per token symbol in SpoutTokenV2 (adjust if needed)
 const TOKEN_DECIMALS: Record<string, number> = {
   USD: 6,
@@ -63,7 +63,7 @@ export function useFaBalance(ownerAddress: string | undefined, symbol: keyof typ
       const typeArg = `${MODULE_ADDRESS}::simpleToken::${actualTokenType}`;
       const [result] = await client.view({
         function: functionName,
-        type_arguments: [typeArg],
+        type_arguments: [],
         arguments: [ownerAddress],
       });
       const value = BigInt(result ?? 0);
