@@ -118,9 +118,8 @@ export default function TradeForm({
   const isBuyDisabled =
     !buyUsdc || isOrderPending || !hasKYCClaim || kycLoading;
 
-  // Display helper: LQD uses 15 decimals in UI
-  const displayTokenBalance =
-    selectedToken === "LQD" ? tokenBalance / 1_000_000 : tokenBalance;
+  // Display helper: balances are already human-formatted from hooks
+  const displayTokenBalance = tokenBalance;
 
   return (
     <div className="w-full max-w-xl mx-auto">

@@ -8,6 +8,7 @@ import TransactionModal from "@/components/ui/transaction-modal";
 import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
 import { useFaBalance } from "@/hooks/aptos/useFaBalance";
+import { useSimpleFaBalance } from "@/hooks/aptos/useSimpleFaBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
 
 const TOKENS = [
@@ -44,14 +45,16 @@ const TradePage = () => {
     error: "",
   });
 
-  const { address: userAddress } = useAptosWallet();
-  const {
-    formatted: tokenFormatted,
-    decimals: tokenDecimals,
-    isLoading: balanceLoading,
-    error: _balanceError,
-    refetch: refetchTokenBalance,
-  } = useFaBalance(userAddress || undefined, selectedToken as any);
+  const { address: userAddress, signAndSubmit } = useAptosWallet();
+  // Fetch balances: USDC via simple FA hook, others via generic FA hook
+  const usdcSimple = useSimpleFaBalance(userAddress || undefined);
+  const tokenFa = useFaBalance(userAddress || undefined, selectedToken as any);
+
+  const tokenFormatted = selectedToken === "USDC" ? usdcSimple.formatted : tokenFa.formatted;
+  const tokenDecimals = selectedToken === "USDC" ? usdcSimple.decimals : tokenFa.decimals;
+  const balanceLoading = selectedToken === "USDC" ? usdcSimple.isLoading : tokenFa.isLoading;
+  const _balanceError = selectedToken === "USDC" ? usdcSimple.error : tokenFa.error;
+  const refetchTokenBalance = selectedToken === "USDC" ? usdcSimple.refetch : tokenFa.refetch;
   const tokenBalance = tokenFormatted ? parseFloat(tokenFormatted) : 0;
   const { buyAsset, sellAsset, isPending: isOrderPending, error: orderError } =
     useAptosOrders();
@@ -60,9 +63,28 @@ const TradePage = () => {
     isLoading: usdcLoading,
     error: usdcErr,
     refetch: refetchUSDCBalance,
-  } = useFaBalance(userAddress || undefined, "USDC_NEW");
+  } = usdcSimple;
   const usdcBalance = usdcFormatted ? parseFloat(usdcFormatted) : 0;
   const usdcError = Boolean(usdcErr);
+
+  // Temporary test button handler for deposit (100 USDC -> 100000000 with 6 decimals)
+  const handleTestDeposit = async () => {
+    try {
+      const tx: any = {
+        function:
+          "0x6acb987bd509e0fe623a1563f48b07e45de52fe6001969a97df2d3fed1c87d5c::simpleToken::deposit",
+        type_arguments: [],
+        arguments: [
+          "0xf21ca0578f286a0ce5e94f3eab0387a9b7e1b9ff1f4634a772d415561ffa0fd",
+          "100",
+        ],
+      };
+      const { hash } = await signAndSubmit(tx);
+      console.log("✅ Deposit submitted:", hash);
+    } catch (e) {
+      console.error("❌ Deposit failed:", e);
+    }
+  };
 
   // Monitor order transaction state
   useEffect(() => {
@@ -346,6 +368,16 @@ const TradePage = () => {
           <h1 className="text-2xl md:text-3xl font-bold">Trade</h1>
           <p className="text-sm md:text-base text-[#cfe7e7] mt-1">Swap tokens and execute trades instantly with low fees.</p>
         </div>
+      </div>
+
+      {/* Temporary Test Deposit Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleTestDeposit}
+          className="px-3 py-2 text-sm rounded-none bg-emerald-600 text-white hover:bg-emerald-700"
+        >
+          Test Deposit
+        </button>
       </div>
 
       <TradeTokenSelector
