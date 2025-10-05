@@ -45,7 +45,7 @@ const TradePage = () => {
     error: "",
   });
 
-  const { address: userAddress, signAndSubmit } = useAptosWallet();
+  const { address: userAddress } = useAptosWallet();
   // Fetch balances: USDC via simple FA hook, others via generic FA hook
   const usdcSimple = useSimpleFaBalance(userAddress || undefined);
   const tokenFa = useFaBalance(userAddress || undefined, selectedToken as any);
@@ -67,24 +67,7 @@ const TradePage = () => {
   const usdcBalance = usdcFormatted ? parseFloat(usdcFormatted) : 0;
   const usdcError = Boolean(usdcErr);
 
-  // Temporary test button handler for deposit (100 USDC -> 100000000 with 6 decimals)
-  const handleTestDeposit = async () => {
-    try {
-      const tx: any = {
-        function:
-          "0x6acb987bd509e0fe623a1563f48b07e45de52fe6001969a97df2d3fed1c87d5c::simpleToken::deposit",
-        type_arguments: [],
-        arguments: [
-          "0xf21ca0578f286a0ce5e94f3eab0387a9b7e1b9ff1f4634a772d415561ffa0fd",
-          "100",
-        ],
-      };
-      const { hash } = await signAndSubmit(tx);
-      console.log("✅ Deposit submitted:", hash);
-    } catch (e) {
-      console.error("❌ Deposit failed:", e);
-    }
-  };
+  // Test deposit removed
 
   // Monitor order transaction state
   useEffect(() => {
@@ -370,15 +353,7 @@ const TradePage = () => {
         </div>
       </div>
 
-      {/* Temporary Test Deposit Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleTestDeposit}
-          className="px-3 py-2 text-sm rounded-none bg-emerald-600 text-white hover:bg-emerald-700"
-        >
-          Test Deposit
-        </button>
-      </div>
+      {/* Test deposit removed */}
 
       <TradeTokenSelector
         tokens={TOKENS}
