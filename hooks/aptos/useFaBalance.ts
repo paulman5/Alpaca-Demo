@@ -7,7 +7,9 @@ import { useAptosClient } from "./useAptosClient";
 const MODULE_ADDRESS =
   (typeof process !== "undefined" && process.env.NEXT_PUBLIC_SPOUT_MODULE_ADDRESS) ||
   "0xf21ca0578f286a0ce5e9f43eab0387a9b7ee1b9ffd1f4634a772d415561fa0fd";
-
+const MODULE_ADDRESS_V2 =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_SPOUT_MODULE_ADDRESS_V2) ||
+  "0xc50c45c8cf451cf262827f258bba2254c94487311c326fa097ce30c39beda4ea";
 // Decimal map per token symbol in SpoutTokenV2 (adjust if needed)
 const TOKEN_DECIMALS: Record<string, number> = {
   USD: 6,
@@ -22,7 +24,7 @@ const TOKEN_DECIMALS: Record<string, number> = {
 
 // Map UI symbols to actual on-chain token types
 const TOKEN_TYPE_MAP: Record<string, string> = {
-  LQD: "LQD_NEW", // Use LQD_NEW internally but show LQD in UI
+  LQD: "USDC", // Use LQD_NEW internally but show LQD in UI
 };
 
 function pow10BigInt(decimals: number): bigint {
@@ -55,10 +57,10 @@ export function useFaBalance(ownerAddress: string | undefined, symbol: keyof typ
     setIsLoading(true);
     setError(null);
     try {
-      const functionName = `${MODULE_ADDRESS}::SpoutTokenV2::balance`;
+      const functionName = `${MODULE_ADDRESS}::simpleToken::balance`;
       // Use the mapped token type for on-chain calls, but keep original symbol for decimals
       const actualTokenType = TOKEN_TYPE_MAP[String(symbol)] || String(symbol);
-      const typeArg = `${MODULE_ADDRESS}::SpoutTokenV2::${actualTokenType}`;
+      const typeArg = `${MODULE_ADDRESS}::simpleToken::${actualTokenType}`;
       const [result] = await client.view({
         function: functionName,
         type_arguments: [typeArg],
