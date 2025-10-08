@@ -45,7 +45,7 @@ const TradePage = () => {
     error: "",
   });
 
-  const { address: userAddress } = useAptosWallet();
+ const { address: userAddress } = useAptosWallet();
   // Fetch balances: USDC via simple FA hook, others via generic FA hook
   const usdcSimple = useSimpleFaBalance(userAddress || undefined);
   const tokenFa = useFaBalance(userAddress || undefined, selectedToken as any);
