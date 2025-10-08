@@ -49,7 +49,7 @@ const PortfolioPerformance: React.FC<PortfolioPerformanceProps> = ({
             {holdings.map((holding, index) => (
               <div
                 key={holding.symbol}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-xl"
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-none"
               >
                 <div className="flex items-center space-x-3">
                   {holding.symbol === "SLQD" ? (
@@ -59,7 +59,7 @@ const PortfolioPerformance: React.FC<PortfolioPerformanceProps> = ({
                         alt="SLQD logo"
                         fill
                         style={{ objectFit: "contain" }}
-                        className="rounded-sm"
+                        className="rounded-none"
                       />
                     </div>
                   ) : (
@@ -93,7 +93,7 @@ const PortfolioPerformance: React.FC<PortfolioPerformanceProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+            <div className="flex justify-between p-3 bg-slate-50 rounded-none">
               <span className="text-sm text-gray-600">30-Day Return</span>
               <span
                 className={`text-sm font-medium ${returns.thirtyDayReturn >= 0 ? "text-green-600" : "text-red-600"}`}
@@ -102,7 +102,7 @@ const PortfolioPerformance: React.FC<PortfolioPerformanceProps> = ({
                 {formatPercent(returns.thirtyDayReturn)}%
               </span>
             </div>
-            <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+            <div className="flex justify-between p-3 bg-slate-50 rounded-none">
               <span className="text-sm text-gray-600">90-Day Return</span>
               <span
                 className={`text-sm font-medium ${returns.ninetyDayReturn >= 0 ? "text-green-600" : "text-red-600"}`}
@@ -111,7 +111,7 @@ const PortfolioPerformance: React.FC<PortfolioPerformanceProps> = ({
                 {formatPercent(returns.ninetyDayReturn)}%
               </span>
             </div>
-            <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+            <div className="flex justify-between p-3 bg-slate-50 rounded-none">
               <span className="text-sm text-gray-600">1-Year Return</span>
               <span
                 className={`text-sm font-medium ${returns.yearReturn >= 0 ? "text-green-600" : "text-red-600"}`}

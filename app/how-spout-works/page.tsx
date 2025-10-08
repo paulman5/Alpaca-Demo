@@ -21,7 +21,7 @@ export default function HowSpoutWorksPage() {
                 providing stable yields while maintaining the benefits of blockchain technology.
               </p>
             </div>
-            <Button className="bg-teal-700 hover:bg-teal-800 text-white px-6 py-3 rounded-xl">
+            <Button className="bg-teal-700 hover:bg-teal-800 text-white px-6 py-3 rounded-none">
               <Play className="w-4 h-4 mr-2" />
               Watch Demo
             </Button>

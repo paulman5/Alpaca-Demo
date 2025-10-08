@@ -58,17 +58,17 @@ export default function PortfolioHoldings({
           {holdings.map((holding) => (
             <div
               key={holding.symbol}
-              className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors"
+              className="flex items-center justify-between p-6 bg-slate-50 rounded-none hover:bg-slate-100 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center relative overflow-hidden">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-none flex items-center justify-center relative overflow-hidden">
                   {holding.symbol === "SLQD" ? (
                     <Image
                       src="/SLQD.png"
                       alt="SLQD logo"
                       fill
                       style={{ objectFit: "cover" }}
-                      className="rounded-2xl"
+                      className="rounded-none"
                     />
                   ) : (
                     <span className="font-bold text-white text-lg">

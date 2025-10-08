@@ -27,8 +27,9 @@ export default function PortfolioHeader({
   };
   const formatPercent = (num: number) => Number(num.toFixed(2));
   return (
-    <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl p-8 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+    <div className="bg-gradient-to-r from-[#004040] via-[#035a5a] to-[#004040] rounded-none p-8 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
       <div className="relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
@@ -57,7 +58,7 @@ export default function PortfolioHeader({
               ${formatNumber(portfolioValue)}
             </div>
             <div
-              className={`flex items-center justify-end text-lg ${dayChange >= 0 ? "text-green-300" : "text-red-300"}`}
+              className={`flex items-center justify-end text-lg ${dayChange >= 0 ? "text-[#cfe7e7]" : "text-[#a7c6ed]"}`}
             >
               {dayChange >= 0 ? (
                 <TrendingUp className="h-5 w-5 mr-2" />
@@ -72,7 +73,7 @@ export default function PortfolioHeader({
         </div>
         <div className="flex gap-4 mt-6">
           <Link href="/app/trade">
-            <Button variant="white" className="text-blue-600 font-semibold">
+            <Button variant="white" className="text-[#004040] font-semibold border border-[#004040] hover:bg-[#004040] hover:text-white">
               <Plus className="h-4 w-4 mr-2" />
               Add Position
             </Button>

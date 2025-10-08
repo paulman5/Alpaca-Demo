@@ -87,7 +87,7 @@ export function JoinMailingList() {
           onChange={handleEmailChange}
           onBlur={handleEmailBlur}
           autoComplete="email"
-          className={`flex-1 w-full bg-white border-gray-300 focus-visible:ring-teal-600 focus-visible:border-teal-600 rounded-xl px-4 py-3 text-base ${
+          className={`flex-1 w-full bg-white border-gray-300 focus-visible:ring-teal-600 focus-visible:border-teal-600 rounded-none px-4 py-3 text-base ${
             error ? "border-red-300 focus-visible:ring-red-400" : ""
           }`}
           disabled={loading}
@@ -105,7 +105,7 @@ export function JoinMailingList() {
           >
             <JoinButton
               type="submit"
-              className="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-md font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-base"
+              className="bg-teal-700 hover:!bg-teal-800 text-white px-8 py-3 rounded-none font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-base"
               isDisabled={
                 loading || (email.length > 0 && !isValidEmail(email.trim()))
               }

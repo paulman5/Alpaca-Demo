@@ -21,29 +21,23 @@ export default function ProfileTabs() {
   // Keep tab in sync with URL
   useEffect(() => {
     setTab(initialTab);
-    if (initialTab !== "kyc") {
-      router.replace("/app/profile?tab=kyc");
-    }
-  }, [initialTab, router]);
+  }, [initialTab]);
 
   const handleTabChange = (value: string) => {
-    if (value === "profile") return;
     setTab(value);
     router.replace(`/app/profile?tab=${value}`);
   };
 
   return (
     <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-      <div className={`bg-white rounded-2xl p-2 shadow-md border-0`}>
+      <div className={`bg-white rounded-none p-2 shadow-md border-0`}>
         <TabsList className="flex justify-center w-full bg-transparent gap-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <TabsTrigger
                   value="profile"
-                  className="flex items-center gap-2 data-[state=active]:bg-slate-100 rounded-xl opacity-60 cursor-not-allowed"
-                  tabIndex={-1}
-                  aria-disabled="true"
+                  className="flex items-center gap-2 data-[state=active]:bg-[#004040]/10 data-[state=active]:text-[#004040] rounded-none"
                 >
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">Profile</span>
@@ -56,7 +50,7 @@ export default function ProfileTabs() {
           </TooltipProvider>
           <TabsTrigger
             value="kyc"
-            className="flex items-center gap-2 data-[state=active]:bg-slate-100 rounded-xl"
+            className="flex items-center gap-2 data-[state=active]:bg-[#004040]/10 data-[state=active]:text-[#004040] rounded-none"
           >
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Verification</span>
@@ -64,7 +58,16 @@ export default function ProfileTabs() {
         </TabsList>
       </div>
 
-      {/* KYC Tab (was Notifications) */}
+      {/* Profile Tab */}
+      <TabsContent value="profile" className="space-y-6">
+        <div className="text-center py-8 text-gray-500">
+          <User className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-medium mb-2">Profile Settings</h3>
+          <p>Profile management features coming soon.</p>
+        </div>
+      </TabsContent>
+
+      {/* KYC Tab */}
       <TabsContent value="kyc" className="space-y-6">
         <KYCFlow />
       </TabsContent>

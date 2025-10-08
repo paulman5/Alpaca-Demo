@@ -47,7 +47,7 @@ export function CorporateBonds({
         <div className="space-y-6">
           {/* Summary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-center p-4 bg-purple-50 rounded-none">
               <div className="text-2xl font-bold text-purple-600">
                 {priceLoading ? (
                   <LoadingSpinner size="sm" />
@@ -57,7 +57,7 @@ export function CorporateBonds({
               </div>
               <div className="text-sm text-gray-600">Total Value</div>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-center p-4 bg-blue-50 rounded-none">
               <div className="text-2xl font-bold text-blue-600">
                 {priceLoading ? (
                   <LoadingSpinner size="sm" />
@@ -67,7 +67,7 @@ export function CorporateBonds({
               </div>
               <div className="text-sm text-gray-600">Current Price</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-green-50 rounded-none">
               <div className="text-2xl font-bold text-green-600">
                 {lqdYieldLoading ? (
                   <LoadingSpinner size="sm" />

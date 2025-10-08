@@ -86,7 +86,7 @@ const DefaultErrorFallback = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {error && process.env.NODE_ENV === "development" && (
-            <div className="p-3 bg-gray-100 rounded-md">
+            <div className="p-3 bg-gray-100 rounded-none">
               <p className="text-xs text-gray-600 font-mono break-all">
                 {error.message}
               </p>

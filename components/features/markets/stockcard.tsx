@@ -90,11 +90,11 @@ export function StockCard({ stock }: StockCardProps) {
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-2 bg-slate-50 rounded-lg">
+              <div className="p-2 bg-slate-50 rounded-none">
                 <span className="block text-xs text-slate-500">Volume</span>
                 <span className="font-medium text-sm">{stock.volume}</span>
               </div>
-              <div className="p-2 bg-slate-50 rounded-lg">
+              <div className="p-2 bg-slate-50 rounded-none">
                 <span className="block text-xs text-slate-500">Market Cap</span>
                 <span className="font-medium text-sm">{stock.marketCap}</span>
               </div>

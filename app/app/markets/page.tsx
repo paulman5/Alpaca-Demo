@@ -232,7 +232,7 @@ function MarketsPage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800 rounded-3xl p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800 rounded-none p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
@@ -268,7 +268,7 @@ function MarketsPage() {
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-emerald-50 rounded-xl">
+                  <div className="p-2 bg-emerald-50 rounded-none">
                     <IconComponent className="h-5 w-5 text-emerald-600" />
                   </div>
                 </div>
@@ -418,7 +418,7 @@ function MarketsPage() {
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="p-2 bg-slate-50 rounded-lg">
+                      <div className="p-2 bg-slate-50 rounded-none">
                         <span className="block text-xs text-slate-500">
                           Volume
                         </span>
@@ -426,7 +426,7 @@ function MarketsPage() {
                           {stock.volume}
                         </span>
                       </div>
-                      <div className="p-2 bg-slate-50 rounded-lg">
+                      <div className="p-2 bg-slate-50 rounded-none">
                         <span className="block text-xs text-slate-500">
                           Market Cap
                         </span>
@@ -453,7 +453,7 @@ function MarketsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl">
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-none">
               <h3 className="text-lg font-semibold text-blue-900 mb-2">
                 S&P 500
               </h3>
@@ -462,7 +462,7 @@ function MarketsPage() {
                 +12.34 (+0.27%)
               </div>
             </div>
-            <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl">
+            <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-none">
               <h3 className="text-lg font-semibold text-purple-900 mb-2">
                 NASDAQ
               </h3>
@@ -473,7 +473,7 @@ function MarketsPage() {
                 -45.67 (-0.32%)
               </div>
             </div>
-            <div className="p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl">
+            <div className="p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-none">
               <h3 className="text-lg font-semibold text-emerald-900 mb-2">
                 Dow Jones
               </h3>

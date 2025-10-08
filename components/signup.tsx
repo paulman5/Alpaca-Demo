@@ -54,7 +54,7 @@ export default function SignupForm() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-white to-emerald-50">
       <Waves className="absolute top-0 left-0 w-full h-full" />
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-emerald-100 p-10 relative z-10">
+      <div className="w-full max-w-md bg-white rounded-none shadow-2xl border border-emerald-100 p-10 relative z-10">
         <div className="text-center flex flex-col items-center mb-8">
           <Image
             src="/Spout_complete.png"
@@ -81,7 +81,7 @@ export default function SignupForm() {
                 {...register("firstName", {
                   required: "First name is required",
                 })}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base"
+                className="w-full px-4 py-3 border border-slate-200 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base"
                 placeholder="First Name"
               />
               {errors.firstName && (
@@ -101,7 +101,7 @@ export default function SignupForm() {
                 id="lastName"
                 type="text"
                 {...register("lastName", { required: "Last name is required" })}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base"
+                className="w-full px-4 py-3 border border-slate-200 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base"
                 placeholder="Last Name"
               />
               {errors.lastName && (
@@ -128,7 +128,7 @@ export default function SignupForm() {
                   message: "Invalid email address",
                 },
               })}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base"
+              className="w-full px-4 py-3 border border-slate-200 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base"
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -155,7 +155,7 @@ export default function SignupForm() {
                     message: "Password must be at least 6 characters",
                   },
                 })}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base pr-12"
+                className="w-full px-4 py-3 border border-slate-200 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-emerald-50 text-slate-900 text-base pr-12"
                 placeholder="Create a password"
               />
               <button
@@ -181,19 +181,19 @@ export default function SignupForm() {
           <button
             type="submit"
             disabled={isSubmitting || isLoading}
-            className="w-full bg-emerald-600 text-white py-3 px-4 rounded-2xl hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold text-lg shadow-lg"
+            className="w-full bg-emerald-600 text-white py-3 px-4 rounded-none hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold text-lg shadow-lg"
           >
             {isSubmitting || isLoading
               ? "Creating Account..."
               : "Create Account"}
           </button>
           {serverError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <div className="bg-red-50 border border-red-200 rounded-none p-3">
               <p className="text-sm text-red-600">{serverError}</p>
             </div>
           )}
           {success && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-3">
+            <div className="bg-green-50 border border-green-200 rounded-none p-3">
               <p className="text-sm text-green-600">
                 Account created successfully! Redirecting to login...
               </p>

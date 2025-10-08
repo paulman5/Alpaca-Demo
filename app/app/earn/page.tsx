@@ -76,7 +76,7 @@ function EarnPage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 rounded-3xl p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 rounded-none p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_60%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
@@ -114,7 +114,7 @@ function EarnPage() {
             <Card key={index} className="border-0 shadow-md group">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <div className={`p-3 ${feature.bgColor} rounded-2xl`}>
+                  <div className={`p-3 ${feature.bgColor} rounded-none`}>
                     <IconComponent className={`h-6 w-6 ${feature.color}`} />
                   </div>
                   <Badge
@@ -162,9 +162,9 @@ function EarnPage() {
               return (
                 <div
                   key={index}
-                  className="text-center p-6 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors"
+                  className="text-center p-6 bg-slate-50 rounded-none hover:bg-slate-100 transition-colors"
                 >
-                  <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-none flex items-center justify-center mx-auto mb-4">
                     <IconComponent className="h-8 w-8 text-emerald-600" />
                   </div>
                   <h3 className="font-semibold text-lg mb-2">
@@ -188,7 +188,7 @@ function EarnPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-white rounded-none">
               <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
               <div className="flex-1">
                 <h4 className="font-semibold">Q1 2024 - Basic Staking</h4>
@@ -203,7 +203,7 @@ function EarnPage() {
                 In Progress
               </Badge>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-white rounded-none">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
               <div className="flex-1">
                 <h4 className="font-semibold">Q2 2024 - Yield Farming</h4>
@@ -213,7 +213,7 @@ function EarnPage() {
               </div>
               <Badge variant="secondary">Planned</Badge>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-white rounded-none">
               <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
               <div className="flex-1">
                 <h4 className="font-semibold">Q3 2024 - RWA Dividends</h4>
@@ -223,7 +223,7 @@ function EarnPage() {
               </div>
               <Badge variant="secondary">Planned</Badge>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-white rounded-none">
               <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
               <div className="flex-1">
                 <h4 className="font-semibold">Q4 2024 - Advanced Strategies</h4>
@@ -249,7 +249,7 @@ function EarnPage() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-xl text-gray-900 placeholder-gray-500"
+              className="flex-1 px-4 py-3 rounded-none text-gray-900 placeholder-gray-500"
             />
             <Button className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-6">
               Notify Me

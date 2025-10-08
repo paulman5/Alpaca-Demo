@@ -22,7 +22,7 @@ export function MarketStats() {
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-emerald-50 rounded-xl">
+                <div className="p-2 bg-emerald-50 rounded-none">
                   <IconComponent className="h-5 w-5 text-emerald-600" />
                 </div>
               </div>

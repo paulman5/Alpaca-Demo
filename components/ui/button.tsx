@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-none text-sm font-medium ring-offset-background transition-colors",
     /* Disabled */
     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ",
     /* Focus Visible */
@@ -42,8 +42,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        sm: "h-9 rounded-none px-3",
+        lg: "h-11 rounded-none px-8",
         icon: "size-10",
       },
     },

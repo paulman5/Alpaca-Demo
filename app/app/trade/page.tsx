@@ -1,22 +1,22 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { clientCacheHelpers } from "@/lib/cache/client-cache";
-import TradeHeader from "@/components/features/trade/tradeheader";
 import TradeTokenSelector from "@/components/features/trade/tradetokenselector";
 import TradeChart from "@/components/features/trade/tradechart";
 import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
-import { useAccount, useConfig } from "wagmi";
-import { useERC20Approve } from "@/hooks/writes/onChain/useERC20Approve";
-import { useOrdersContract } from "@/hooks/writes/onChain/useOrders";
-import { waitForTransactionReceipt } from "wagmi/actions";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
-import { useUSDCTokenBalance } from "@/hooks/view/onChain/useUSDCTokenBalance";
-import { useContractAddress, USDC_DECIMALS } from "@/lib/addresses";
-import { useReadContract } from "wagmi";
-import erc3643ABI from "@/abi/erc3643.json";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
+import { useFaBalance } from "@/hooks/aptos/useFaBalance";
+import { useSimpleFaBalance } from "@/hooks/aptos/useSimpleFaBalance";
+import { useMarketData } from "@/hooks/api/useMarketData";
 
-const TOKENS = [{ label: "LQD", value: "LQD" }];
+const TOKENS = [
+  { label: "LQD", value: "LQD" },
+  { label: "TSLA", value: "TSLA" },
+  { label: "AAPL", value: "AAPL" },
+  { label: "GOLD", value: "GOLD" },
+];
 
 const TradePage = () => {
   const [selectedToken, setSelectedToken] = useState("LQD");
@@ -32,6 +32,9 @@ const TradePage = () => {
   );
   const [etfData, setEtfData] = useState<any>(null);
 
+  // Per-asset market data
+  const { price: mdPrice, previousClose: mdPrevClose, isLoading: mdLoading } = useMarketData(selectedToken);
+
   // Transaction modal state
   const [transactionModal, setTransactionModal] = useState({
     isOpen: false,
@@ -42,45 +45,34 @@ const TradePage = () => {
     error: "",
   });
 
-  const { address: userAddress } = useAccount();
+ const { address: userAddress } = useAptosWallet();
+  // Fetch balances: USDC via simple FA hook, others via generic FA hook
+  const usdcSimple = useSimpleFaBalance(userAddress || undefined);
+  const tokenFa = useFaBalance(userAddress || undefined, selectedToken as any);
+
+  const tokenFormatted = selectedToken === "USDC" ? usdcSimple.formatted : tokenFa.formatted;
+  const tokenDecimals = selectedToken === "USDC" ? usdcSimple.decimals : tokenFa.decimals;
+  const balanceLoading = selectedToken === "USDC" ? usdcSimple.isLoading : tokenFa.isLoading;
+  const _balanceError = selectedToken === "USDC" ? usdcSimple.error : tokenFa.error;
+  const refetchTokenBalance = selectedToken === "USDC" ? usdcSimple.refetch : tokenFa.refetch;
+  const tokenBalance = tokenFormatted ? parseFloat(tokenFormatted) : 0;
+  const { buyAsset, sellAsset, isPending: isOrderPending, error: orderError } =
+    useAptosOrders();
   const {
-    balance: tokenBalance,
-    symbol: tokenSymbol,
-    isLoading: balanceLoading,
-    refetch: refetchTokenBalance,
-  } = useTokenBalance(userAddress);
-  const ordersAddress = useContractAddress("orders") as `0x${string}`;
-  const usdcAddress = useContractAddress("usdc") as `0x${string}`;
-  const rwaTokenAddress = useContractAddress("rwatoken") as `0x${string}`;
-  const { approve, isPending: isApprovePending } = useERC20Approve(usdcAddress);
-  const {
-    buyAsset,
-    sellAsset,
-    isPending: isOrderPending,
-    isSuccess: isOrderSuccess,
-    error: orderError,
-  } = useOrdersContract();
-  const config = useConfig();
-  const {
-    balance: usdcBalance,
+    formatted: usdcFormatted,
     isLoading: usdcLoading,
-    isError: usdcError,
+    error: usdcErr,
     refetch: refetchUSDCBalance,
-  } = useUSDCTokenBalance(userAddress);
+  } = usdcSimple;
+  const usdcBalance = usdcFormatted ? parseFloat(usdcFormatted) : 0;
+  const usdcError = Boolean(usdcErr);
 
-  // Get token decimals dynamically
-  const { data: tokenDecimals } = useReadContract({
-    address: rwaTokenAddress,
-    abi: erc3643ABI.abi,
-    functionName: "decimals",
-  });
-
-  const actualTokenDecimals = tokenDecimals ? Number(tokenDecimals) : 6;
+  // Test deposit removed
 
   // Monitor order transaction state
   useEffect(() => {
     if (transactionModal.isOpen && transactionModal.status === "waiting") {
-      if (isOrderSuccess) {
+      if (false) {
         // Transaction completed successfully
         setTransactionModal((prev) => ({
           ...prev,
@@ -105,7 +97,6 @@ const TradePage = () => {
       }
     }
   }, [
-    isOrderSuccess,
     orderError,
     transactionModal.isOpen,
     transactionModal.status,
@@ -150,46 +141,38 @@ const TradePage = () => {
   }, [selectedToken]);
 
   useEffect(() => {
-    let isMounted = true;
-    let lastKnownPrice: number | null = null;
-
-    async function fetchPriceData() {
+    // sync local state loading to hook loading for UI
+    // Special-case GOLD using Metalprice API if selected
+    async function loadGold() {
+      setPriceLoading(true);
       try {
-        setPriceLoading(true);
-        const json = await clientCacheHelpers.fetchMarketData(selectedToken);
-        if (!isMounted) return;
-
-        if (json.price && json.price > 0) {
-          // Only update if price has actually changed
-          if (lastKnownPrice !== json.price) {
-            setCurrentPrice(json.price);
-            lastKnownPrice = json.price;
-          }
-        } else {
-          setCurrentPrice(null); // No valid price data
-        }
+        const url =
+          "https://api.metalpriceapi.com/v1/latest?api_key=54ee16f25dba8e9c04459a5da94d415e&base=USD&currencies=EUR,XAU,XAG";
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`gold api ${res.status}`);
+        const data = await res.json();
+        const xauPerUsd = Number(data?.rates?.XAU || 0);
+        const usdPerXau = xauPerUsd > 0 ? 1 / xauPerUsd : null;
+        setCurrentPrice(usdPerXau);
       } catch (e) {
-        if (isMounted) {
-          setCurrentPrice(null); // Error fetching price
-        }
+        setCurrentPrice(null);
       } finally {
-        if (isMounted) {
-          setPriceLoading(false);
-        }
+        setPriceLoading(false);
       }
     }
 
-    // Initial fetch
-    fetchPriceData();
+    if (selectedToken === "GOLD") {
+      void loadGold();
+    } else {
+      setPriceLoading(mdLoading);
+      setCurrentPrice(mdPrice ?? null);
+    }
+  }, [mdLoading, mdPrice, selectedToken]);
 
-    // Refetch every 5 minutes to reduce Vercel compute usage
-    const interval = setInterval(fetchPriceData, 5 * 60 * 1000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [selectedToken]);
+  // Refetch token balance when switching asset or user changes
+  useEffect(() => {
+    void refetchTokenBalance();
+  }, [selectedToken, userAddress, refetchTokenBalance]);
 
   // Use chart data as primary source for price calculations
   const chartLatestPrice =
@@ -198,7 +181,7 @@ const TradePage = () => {
     tokenData.length > 1 ? tokenData[tokenData.length - 2].close : null;
 
   // Use currentPrice (from market data API) as fallback only if chart data is not available
-  const latestPrice = chartLatestPrice || currentPrice;
+  const latestPrice = chartLatestPrice || currentPrice || mdPrice || null;
   const prevPrice =
     chartPrevPrice ||
     (tokenData.length > 0
@@ -229,17 +212,19 @@ const TradePage = () => {
   const netReceiveTokens = estimatedTokens
     ? (parseFloat(estimatedTokens) * (1 - tradingFee)).toFixed(4)
     : "";
+  // Display helper for net received tokens (LQD uses 15 decimals)
+  const displayNetReceiveTokens =
+    selectedToken === "LQD" && netReceiveTokens
+      ? (parseFloat(netReceiveTokens) / 1_000_000_000_000_000).toFixed(6)
+      : netReceiveTokens;
   const netReceiveUsdc = estimatedUsdc
     ? (parseFloat(estimatedUsdc) * (1 - tradingFee)).toFixed(2)
     : "";
 
   const handleBuy = async () => {
     if (!userAddress || !buyUsdc || !latestPrice) return;
-    // Convert USDC amount to proper decimals using USDC_DECIMALS
     const usdcAmountNum = parseFloat(buyUsdc);
-    const amount = BigInt(
-      Math.floor(usdcAmountNum * 1e6),
-    );
+    const amount = BigInt(Math.floor(usdcAmountNum * 1e6));
 
     const estimatedTokenAmount =
       latestPrice > 0 ? usdcAmountNum / latestPrice : 0;
@@ -250,24 +235,25 @@ const TradePage = () => {
       status: "waiting",
       transactionType: "buy",
       amount: `${buyUsdc} USDC`,
-      receivedAmount: netReceiveTokens,
+      receivedAmount: displayNetReceiveTokens,
       error: "",
     });
 
     try {
-      // Step 1: Approve USDC
-      const approveTx = await approve(ordersAddress, amount);
-      await waitForTransactionReceipt(config, { hash: approveTx });
-      console.log("✅ USDC approval completed");
-
-      // Step 2: Execute buy transaction
-      console.log("📤 Sending USDC amount to contract:", amount.toString());
-      buyAsset(BigInt(2000002), selectedToken, rwaTokenAddress, amount);
+      // Execute buy order via Aptos module
+      console.log("📤 Sending buy order:", amount.toString());
+      const hash = await buyAsset(selectedToken, amount.toString());
       setBuyUsdc("");
 
-      // Keep modal open for buy transaction to complete
-      // The modal will stay in "waiting" state until the buy transaction is processed
-      console.log("⏳ Buy transaction submitted, keeping modal open...");
+      // Mark as completed immediately after tx submission and refresh balances
+      setTransactionModal((prev) => ({ ...prev, status: "completed" }));
+      try {
+        await Promise.all([refetchTokenBalance(), refetchUSDCBalance()]);
+      } catch {}
+      // Auto-close modal after 3 seconds
+      setTimeout(() => {
+        setTransactionModal((prev) => ({ ...prev, isOpen: false }));
+      }, 6000);
     } catch (error) {
       console.error("❌ Error in buy transaction:", error);
       setTransactionModal((prev) => ({
@@ -312,8 +298,9 @@ const TradePage = () => {
       return;
     }
 
-    // Multiply by 18 decimals for token amount
-    const tokenAmount = BigInt(Math.floor(sellTokenAmount * 1e18));
+    // Multiply by token decimals for amount (u128)
+    const pow = Math.pow(10, tokenDecimals || 6);
+    const tokenAmount = BigInt(Math.floor(sellTokenAmount * pow));
 
     const estimatedUsdcAmount =
       latestPrice > 0 ? sellTokenAmount * latestPrice : 0;
@@ -329,11 +316,17 @@ const TradePage = () => {
     });
 
     try {
-      // Execute sell transaction
-      sellAsset(BigInt(2000002), selectedToken, rwaTokenAddress, tokenAmount);
+      // Execute sell order via Aptos module
+      const hash = await sellAsset(selectedToken, tokenAmount.toString());
       setSellToken("");
-
-      console.log("⏳ Sell transaction submitted, keeping modal open...");
+      // Mark as completed and refresh balances
+      setTransactionModal((prev) => ({ ...prev, status: "completed" }));
+      try {
+        await Promise.all([refetchTokenBalance(), refetchUSDCBalance()]);
+      } catch {}
+      setTimeout(() => {
+        setTransactionModal((prev) => ({ ...prev, isOpen: false }));
+      }, 3000);
     } catch (error) {
       console.error("❌ Error in sell transaction:", error);
       setTransactionModal((prev) => ({
@@ -350,21 +343,37 @@ const TradePage = () => {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto px-2 md:px-0">
-      <TradeHeader />
+      {/* Page banner */}
+      <div className="bg-gradient-to-r from-[#004040] via-[#035a5a] to-[#004040] rounded-none p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+        <div className="relative z-10">
+          <h1 className="text-2xl md:text-3xl font-bold">Trade</h1>
+          <p className="text-sm md:text-base text-[#cfe7e7] mt-1">Swap tokens and execute trades instantly with low fees.</p>
+        </div>
+      </div>
+
+      {/* Test deposit removed */}
+
       <TradeTokenSelector
         tokens={TOKENS}
         selectedToken={selectedToken}
         setSelectedToken={setSelectedToken}
       />
-      <TradeChart
-        loading={loading}
-        tokenData={tokenData}
-        selectedToken={selectedToken}
-      />
-      <TradeForm
+      <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+        <TradeChart
+          loading={loading}
+          tokenData={tokenData}
+          selectedToken={selectedToken}
+        />
+      </div>
+      <div className="rounded-none shadow-sm">
+        <TradeForm
         tradeType={tradeType}
         setTradeType={setTradeType}
         selectedToken={selectedToken}
+        setSelectedToken={setSelectedToken}
+        tokens={TOKENS}
         buyUsdc={buyUsdc}
         setBuyUsdc={setBuyUsdc}
         sellToken={sellToken}
@@ -376,7 +385,6 @@ const TradePage = () => {
         usdcLoading={usdcLoading}
         usdcError={usdcError}
         balanceLoading={balanceLoading}
-        isApprovePending={isApprovePending}
         isOrderPending={isOrderPending}
         handleBuy={handleBuy}
         handleSell={handleSell}
@@ -386,7 +394,8 @@ const TradePage = () => {
         netReceiveUsdc={netReceiveUsdc}
         priceChangePercent={priceChangePercent}
         priceChange={priceChange}
-      />
+        />
+      </div>
 
       {/* Transaction Modal */}
       <TransactionModal

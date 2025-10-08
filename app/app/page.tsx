@@ -20,33 +20,32 @@ import {
   PieChart,
   Zap,
 } from "lucide-react";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
+import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAccount } from "wagmi";
-import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+// import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { Suspense } from "react";
-import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
+// import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 
 function DashboardPage() {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useAptosWallet();
   const {
     balance: tokenBalance,
-    symbol: tokenSymbol,
     isLoading: balanceLoading,
     isError: balanceError,
-  } = useTokenBalance(userAddress);
+  } = useTokenBalance(userAddress ?? undefined);
   const {
     price: currentPrice,
     previousClose,
     isLoading: priceLoading,
     error: priceError,
   } = useMarketData("LQD");
-  const {
-    activities,
-    isLoading: activitiesLoading,
-    hasMore,
-    loadMore,
-  } = useRecentActivity(userAddress);
+  // const {
+  //   activities,
+  //   isLoading: activitiesLoading,
+  //   hasMore,
+  //   loadMore,
+  // } = useRecentActivity(userAddress);
 
   // Format number to 3 decimals, matching portfolio holdings
   const formatNumber = (num: number) => {
@@ -77,7 +76,7 @@ function DashboardPage() {
     tokenBalance && tokenBalance > 0
       ? [
           {
-            symbol: tokenSymbol || "SUSC",
+            symbol: "SUSC",
             shares: tokenBalance,
             value: portfolioValue,
           },
@@ -158,7 +157,7 @@ function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800 rounded-3xl p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#004040] via-[#035a5a] to-[#004040] rounded-none p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
@@ -171,7 +170,7 @@ function DashboardPage() {
             </Badge>
           </div>
           <h1 className="text-4xl font-bold mb-3">Welcome back</h1>
-          <p className="text-emerald-100 text-lg mb-6 max-w-2xl">
+          <p className="text-[#cfe7e7] text-lg mb-6 max-w-2xl">
             Your portfolio is performing well today. Track your investments,
             execute trades, and stay ahead of the market.
           </p>
@@ -179,7 +178,7 @@ function DashboardPage() {
             <Link href="/app/trade">
               <Button
                 variant="white"
-                className="text-emerald-600 font-semibold"
+                className="text-[#004040] font-semibold border border-[#004040] hover:bg-[#004040] hover:text-white"
               >
                 Start Trading
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -199,17 +198,17 @@ function DashboardPage() {
           return (
             <Card
               key={index}
-              className="hover:shadow-lg transition-all duration-300 border-0 shadow-md"
+              className="hover:shadow-lg transition-all duration-300 border border-[#004040]/15 shadow-md"
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-emerald-50 rounded-xl">
-                    <IconComponent className="h-5 w-5 text-emerald-600" />
+                  <div className="p-2 bg-[#e6f2f2] rounded-none">
+                    <IconComponent className="h-5 w-5 text-[#004040]" />
                   </div>
                   {stat.positive !== null && (
                     <Badge
                       variant={stat.positive ? "default" : "destructive"}
-                      className="text-xs"
+                      className={`text-xs ${stat.positive ? "bg-[#004040]" : "bg-[#a7c6ed]"}`}
                     >
                       {stat.positive ? "↗" : "↘"}
                     </Badge>
@@ -225,9 +224,9 @@ function DashboardPage() {
                   <p
                     className={`text-sm ${
                       stat.positive === true
-                        ? "text-emerald-600"
+                        ? "text-[#004040]"
                         : stat.positive === false
-                          ? "text-red-600"
+                          ? "text-[#a7c6ed]"
                           : "text-slate-500"
                     }`}
                   >
@@ -246,23 +245,23 @@ function DashboardPage() {
           const IconComponent = feature.icon;
           const cardContent = (
             <Card
-              className={`hover:shadow-xl transition-all duration-300 group border-0 shadow-md ${feature.soon ? "opacity-60 pointer-events-none" : "cursor-pointer"}`}
+              className={`hover:shadow-xl transition-all duration-300 group border border-[#004040]/15 shadow-md ${feature.soon ? "opacity-60 pointer-events-none" : "cursor-pointer"}`}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div
-                    className={`p-3 ${feature.bgColor} rounded-2xl group-hover:scale-110 transition-transform duration-300`}
+                    className={`p-3 bg-[#e6f2f2] rounded-none group-hover:scale-110 transition-transform duration-300`}
                   >
-                    <IconComponent className={`h-6 w-6 ${feature.color}`} />
+                    <IconComponent className={`h-6 w-6 text-[#004040]`} />
                   </div>
                   <div className="text-right flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs border border-[#004040]/20">
                       {feature.stats}
                     </Badge>
                     {feature.soon && (
                       <Badge
                         variant="outline"
-                        className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300"
+                        className="text-xs bg-[#f1e7fb] text-[#6c2ab5] border-[#a7c6ed]"
                       >
                         Soon
                       </Badge>
@@ -270,7 +269,7 @@ function DashboardPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <CardTitle className="text-xl group-hover:text-emerald-600 transition-colors">
+                  <CardTitle className="text-xl group-hover:text-[#004040] transition-colors">
                     {feature.title}
                   </CardTitle>
                   <CardDescription className="text-slate-600">
@@ -279,7 +278,7 @@ function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex items-center text-emerald-600 font-medium text-sm group-hover:translate-x-1 transition-transform duration-300">
+                <div className="flex items-center text-[#004040] font-medium text-sm group-hover:translate-x-1 transition-transform duration-300">
                   {feature.soon ? "Coming Soon" : `Open ${feature.title}`}
                   {!feature.soon && <ArrowRight className="ml-2 h-4 w-4" />}
                 </div>
@@ -301,13 +300,15 @@ function DashboardPage() {
         })}
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity - temporarily disabled for Aptos restructure */}
+      {/**
       <PortfolioActivity
         activities={activities}
         activitiesLoading={activitiesLoading}
         hasMore={hasMore}
         loadMore={loadMore}
       />
+      */}
     </div>
   );
 }

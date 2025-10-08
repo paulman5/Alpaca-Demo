@@ -20,9 +20,10 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import Link from "next/link";
-import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
+import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAccount } from "wagmi";
+import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useFaBalance } from "@/hooks/aptos/useFaBalance";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import {
   Tooltip,
@@ -30,19 +31,17 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import PortfolioPerformance from "@/components/features/portfolio/portfolioperformance";
 import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 
 export default function PortfolioPage() {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useAptosWallet();
   const {
     balance: tokenBalance,
-    symbol: tokenSymbol,
     isLoading: balanceLoading,
     isError: balanceError,
-  } = useTokenBalance(userAddress);
+  } = useTokenBalance(userAddress || undefined);
 
   const {
     price: currentPrice,
@@ -55,12 +54,17 @@ export default function PortfolioPage() {
 
   const { username, loading } = useCurrentUser();
 
-  const {
-    activities,
-    isLoading: activitiesLoading,
-    hasMore,
-    loadMore,
-  } = useRecentActivity(userAddress);
+  // Additional token balances via FA view (module SpoutTokenV2)
+  const { formatted: lqdBal } = useFaBalance(userAddress || undefined, "LQD");
+  const { formatted: tslaBal } = useFaBalance(userAddress || undefined, "TSLA");
+  const { formatted: aaplBal } = useFaBalance(userAddress || undefined, "AAPL");
+  const { formatted: goldBal } = useFaBalance(userAddress || undefined, "GOLD");
+
+  // Recent activity temporarily disabled - will implement with Aptos hooks
+  const activities: any[] = [];
+  const activitiesLoading = false;
+  const hasMore = false;
+  const loadMore = () => {};
 
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
@@ -75,23 +79,7 @@ export default function PortfolioPage() {
     return num.toFixed(2);
   };
 
-  // Portfolio data using actual token balance and market price
-  const portfolioValue =
-    tokenBalance && currentPrice ? tokenBalance * currentPrice : 0;
-
-  // Calculate daily change based on previous close
-  const previousDayValue =
-    tokenBalance && previousClose ? tokenBalance * previousClose : 0;
-
-  const dayChange = portfolioValue - previousDayValue;
-  const dayChangePercent =
-    previousDayValue > 0
-      ? ((portfolioValue - previousDayValue) / previousDayValue) * 100
-      : 0;
-
-  // Calculate total return based on current market price vs previous close
-  const totalReturn = dayChange; // Use the same daily change value
-  const totalReturnPercent = dayChangePercent; // Use the same percentage
+  // Holdings derived below will be used to compute portfolio summaries
 
   console.log("Portfolio return information", {
     tokenBalance,
@@ -99,19 +87,75 @@ export default function PortfolioPage() {
     previousClose,
   });
 
-  const holdings = [
+  type HoldingBase = {
+    symbol: string;
+    name: string;
+    shares: number;
+    avgPrice: number;
+    currentPrice: number;
+    value: number;
+  };
+
+  type Holding = HoldingBase & {
+    dayChange: number;
+    totalReturn: number;
+    allocation: number;
+  };
+
+  const baseHoldings: HoldingBase[] = [
     {
-      symbol: tokenSymbol || "SLQD",
+      symbol: "LQD",
       name: "Spout US Corporate Bond Token",
-      shares: tokenBalance || 0,
+      shares: Number(lqdBal || 0),
       avgPrice: previousClose || 0,
       currentPrice: currentPrice ?? 0,
-      value: portfolioValue,
-      dayChange: dayChangePercent, // number, not formatted string
-      totalReturn: totalReturnPercent, // number, not formatted string
-      allocation: 100,
+      value: (Number(lqdBal || 0)) * (currentPrice ?? 0),
+    },
+    {
+      symbol: "TSLA",
+      name: "Tesla Synthetic",
+      shares: Number(tslaBal || 0),
+      avgPrice: previousClose || 0,
+      currentPrice: currentPrice ?? 0,
+      value: (Number(tslaBal || 0)) * (currentPrice ?? 0),
+    },
+    {
+      symbol: "AAPL",
+      name: "Apple Synthetic",
+      shares: Number(aaplBal || 0),
+      avgPrice: previousClose || 0,
+      currentPrice: currentPrice ?? 0,
+      value: (Number(aaplBal || 0)) * (currentPrice ?? 0),
+    },
+    {
+      symbol: "GOLD",
+      name: "Gold Synthetic",
+      shares: Number(goldBal || 0),
+      avgPrice: previousClose || 0,
+      currentPrice: currentPrice ?? 0,
+      value: (Number(goldBal || 0)) * (currentPrice ?? 0),
     },
   ];
+
+  // Compute totals from all holdings
+  const portfolioValue: number = baseHoldings.reduce((sum: number, h: HoldingBase) => sum + (h.value || 0), 0);
+  const previousDayValue: number = baseHoldings.reduce(
+    (sum: number, h: HoldingBase) => sum + (h.shares || 0) * (h.avgPrice || 0),
+    0,
+  );
+  const dayChange: number = portfolioValue - previousDayValue;
+  const dayChangePercent: number = previousDayValue > 0 ? (dayChange / previousDayValue) * 100 : 0;
+  const totalReturn: number = dayChange;
+  const totalReturnPercent: number = dayChangePercent;
+
+  // Compute allocation based on value proportion
+  const totalVal: number = portfolioValue || 1; // prevent division by zero
+  const holdings: Holding[] = baseHoldings.map((h) => ({
+    ...h,
+    dayChange: dayChangePercent,
+    totalReturn: totalReturnPercent,
+    allocation: totalVal > 0 ? Math.round(((h.value || 0) / totalVal) * 100) : 0,
+  }));
 
   // Show loading spinner overlay but keep the blue dashboard background
   const isLoading = balanceLoading || priceLoading || returnsLoading;
@@ -308,10 +352,10 @@ export default function PortfolioPage() {
                     {holdings.map((holding) => (
                       <div
                         key={holding.symbol}
-                        className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors"
+                        className="flex items-center justify-between p-6 bg-slate-50 rounded-2xlhover:bg-slate-100 transition-colors"
                       >
                         <div className="flex items-center space-x-4">
-                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rrounded-2xllex items-center justify-center">
                             <span className="font-bold text-white text-lg">
                               {holding.symbol[0]}
                             </span>
