@@ -37,6 +37,10 @@ export function PartnerTicker() {
   const speed = 0.5; // px per frame
 
   useEffect(() => {
+    // Temporarily disabled the scrolling animation to test performance.
+    // Re-enable by removing this early return.
+    return;
+
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;

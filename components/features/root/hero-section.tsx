@@ -80,9 +80,9 @@ export function HeroSection() {
       </div>
 
       {/* Compatible Networks Section */}
-      <div className="relative z-10 w-full max-w-[1800px] mx-auto px-16 mb-6">
+      {/* <div className="relative z-10 w-full max-w-[1800px] mx-auto px-16 mb-6">
         <PartnerTicker />
-      </div>
+      </div> */}
       </div>
 
       {/* Slant Dashes */}

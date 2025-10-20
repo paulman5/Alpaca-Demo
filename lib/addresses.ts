@@ -21,12 +21,12 @@ export const contractaddresses = {
   },
   // Legacy key retained for backward compatibility
   rwatoken: {
-    84532: "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB", // Base Sepolia
-    688688: "0x54b753555853ce22f66Ac8CB8e324EB607C4e4eE", // Pharos Testnet
+    84532: "0x3777f8d72E820632bbf82661AC75D82127349c48", // Base Sepolia
+    688688: "0x3777f8d72E820632bbf82661AC75D82127349c48", // Pharos Testnet
   },
   SpoutLQDtoken: {
-    84532: "0xB5F83286a6F8590B4d01eC67c885252Ec5d0bdDB", // Base Sepolia
-    688688: "0x54b753555853ce22f66Ac8CB8e324EB607C4e4eE", // Pharos Testnet
+    84532: "0x3777f8d72E820632bbf82661AC75D82127349c48", // Base Sepolia
+    688688: "0x3777f8d72E820632bbf82661AC75D82127349c48", // Pharos Testnet
   },
   proofOfReserve: {
     84532: "0x0000000000000000000000000000000000000000", // Base Sepolia - placeholder
