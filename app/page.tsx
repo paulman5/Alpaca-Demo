@@ -1,6 +1,5 @@
 import BgGrain from "@/components/bg-grain-svg";
 import {
-  AnnouncementBar,
   HeroSection,
   HowSpoutWorks,
   ProofOfReserveLanding,

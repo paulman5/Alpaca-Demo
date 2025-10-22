@@ -13,13 +13,12 @@ export const contractaddresses = {
   },
   orders: {
     84532: "0x1EE5DdF4c8Ac5C3359f360098AE85289D4874993", // Base Sepolia
-    688688: "0x81b33972f8bdf14fD7968aC99CAc59BcaB7f4E9A", // Pharos Testnet
+    688688: "0xcDA0C7Dd4C8920223A947557cC4A54B45015e3eD", // Pharos Testnet
   },
   usdc: {
     84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Base Sepolia
     688688: "0x72df0bcd7276f2dFbAc900D1CE63c272C4BCcCED", // Pharos Testnet
   },
-  // Legacy key retained for backward compatibility
   rwatoken: {
     84532: "0x3777f8d72E820632bbf82661AC75D82127349c48", // Base Sepolia
     688688: "0x3777f8d72E820632bbf82661AC75D82127349c48", // Pharos Testnet
