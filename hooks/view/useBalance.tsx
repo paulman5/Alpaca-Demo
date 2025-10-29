@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -15,6 +15,10 @@ export type UseTokenBalanceResult = {
 export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null): UseTokenBalanceResult {
   const { connection } = useConnection();
 
+  // DEBUG: hardcoded mint and owner to verify inputs
+  const effectiveMint = useMemo(() => new PublicKey("GnYQJqqkiN5CTJhCT8Ko3Qd1JQYNj5n91gLJinamt5Xg"), []);
+  const effectiveOwner = useMemo(() => new PublicKey("Dd454fdtKRF5NEAbwCCVJnj8P4FroAD8Ei4dHRWUC4LW"), []);
+
   const [amountRaw, setAmountRaw] = useState<string | null>(null);
   const [decimals, setDecimals] = useState<number | null>(null);
   const [amountUi, setAmountUi] = useState<string | null>(null);
@@ -22,9 +26,9 @@ export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null)
   const [error, setError] = useState<string | null>(null);
 
   const ataPromise = useMemo(() => {
-    if (!mint || !owner) return null;
-    return getAssociatedTokenAddress(mint, owner);
-  }, [mint, owner]);
+    if (!effectiveMint || !effectiveOwner) return null;
+    return getAssociatedTokenAddress(effectiveMint, effectiveOwner);
+  }, [effectiveMint, effectiveOwner]);
 
   const fetchBalance = useCallback(async () => {
     if (!ataPromise) {
@@ -46,7 +50,7 @@ export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null)
     }
   }, [connection, ataPromise]);
 
-  useEffect(() => { void fetchBalance(); }, [fetchBalance]);
+  // NOTE: No automatic fetch here; call refetch() manually from the consumer.
 
   return { amountRaw, decimals, amountUi, isLoading, error, refetch: fetchBalance };
 }

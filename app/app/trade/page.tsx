@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { clientCacheHelpers } from "@/lib/cache/client-cache";
 import TradeTokenSelector from "@/components/features/trade/tradetokenselector";
 import TradeChart from "@/components/features/trade/tradechart";
@@ -72,6 +72,15 @@ const TradePage = () => {
   const refetchTokenBalance = tokenBal.refetch;
   const refetchUSDCBalance = usdcBal.refetch;
 
+  // Fire a single token balance fetch when keys become available
+  const didFetchTokenBalance = useRef(false);
+  useEffect(() => {
+    if (didFetchTokenBalance.current) return;
+    if (!tokenMint || !ownerPk) return;
+    didFetchTokenBalance.current = true;
+    void refetchTokenBalance();
+  }, [tokenMint, ownerPk, refetchTokenBalance]);
+
   // Disable on-chain order flow for now; keep form interactions local
   const tokenDecimals = 9;
   const isOrderPending = false;
@@ -143,10 +152,7 @@ const TradePage = () => {
     }
   }, [mdLoading, mdPrice, selectedToken]);
 
-  // Refetch token balance when switching asset or user changes
-useEffect(() => {
-  if (tokenMint && ownerPk) void refetchTokenBalance();
-}, [selectedToken, tokenMint, ownerPk, refetchTokenBalance]);
+  // Disable automatic token balance refetches; call refetchTokenBalance manually when needed
 
   // Use chart data as primary source for price calculations
   const chartLatestPrice =
