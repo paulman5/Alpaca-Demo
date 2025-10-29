@@ -22,14 +22,52 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 export function DashboardSidebarNavClient() {
   const { open } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
+  const { connected, publicKey, disconnect } = useWallet();
+  const { connection } = useConnection();
+  const { setVisible } = useWalletModal();
+  const [balanceSol, setBalanceSol] = useState<string | null>(null);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
+
+  const shortAddress = useMemo(() => {
+    const base58 = publicKey?.toBase58();
+    return base58 ? `${base58.slice(0, 6)}...${base58.slice(-4)}` : null;
+  }, [publicKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBalance() {
+      if (!publicKey) {
+        setBalanceSol(null);
+        return;
+      }
+      setIsBalanceLoading(true);
+      try {
+        const lamports = await connection.getBalance(publicKey, { commitment: "confirmed" });
+        if (!cancelled) {
+          const sol = lamports / 1_000_000_000;
+          setBalanceSol(sol.toFixed(3) + " SOL");
+        }
+      } catch {
+        if (!cancelled) setBalanceSol(null);
+      } finally {
+        if (!cancelled) setIsBalanceLoading(false);
+      }
+    }
+    void loadBalance();
+    return () => {
+      cancelled = true;
+    };
+  }, [publicKey, connection]);
 
   const isActive = (path: string) => {
     if (path === "/app") {
@@ -131,9 +169,36 @@ export function DashboardSidebarNavClient() {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t">
         <div className="space-y-3">
-          <div className="mt-1">
-            <WalletMultiButton className="w-full justify-center rounded-none" />
-          </div>
+          {/* Solana connect button or wallet pill */}
+          {!connected ? (
+            <Button
+              onClick={() => setVisible(true)}
+              className="mt-3 bg-black text-white text-sm rounded-none px-4 py-2 border border-gray-600/50 hover:bg-black/90 focus:outline-none w-full justify-center"
+            >
+              Connect Wallet
+            </Button>
+          ) : (
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-none border border-gray-200 bg-gray-50 px-3 py-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs text-gray-600 truncate">
+                    {shortAddress}
+                  </span>
+                  <span className="text-xs font-medium text-gray-900">
+                    {isBalanceLoading ? "Loading…" : balanceSol ?? "—"}
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => disconnect()}
+                className="shrink-0 text-xs rounded-none"
+              >
+                Disconnect
+              </Button>
+            </div>
+          )}
           {/* <SignOutButton className="w-full flex items-center gap-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-none transition-colors">
             <LogOut className="h-4 w-4" />
             <span>Sign Out</span>
