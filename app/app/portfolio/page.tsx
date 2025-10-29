@@ -6,24 +6,18 @@ import PortfolioHoldings from "@/components/features/portfolio/portfolioholdings
 import PortfolioPerformance from "@/components/features/portfolio/portfolioperformance";
 // import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
-import { useFaBalance } from "@/hooks/aptos/useFaBalance";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 // import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import { useEffect, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 function PortfolioPage() {
-  const { address: userAddress } = useAptosWallet();
-  const {
-    balance: tokenBalance,
-    isLoading: balanceLoading,
-    isError: balanceError,
-    refetch: refetchTokenBalance,
-  } = useTokenBalance(userAddress ?? undefined);
+  const { publicKey } = useWallet();
+  const userAddress = publicKey?.toBase58() || null;
+  const balanceLoading = false;
 
   // Fetch per-asset market data
   const {
@@ -92,11 +86,11 @@ function PortfolioPage() {
   };
   const formatPercent = (num: number) => num.toFixed(2);
 
-  // Additional FA balances (SpoutTokenV2)
-  const { formatted: lqdBal } = useFaBalance(userAddress || undefined, "LQD");
-  const { formatted: tslaBal } = useFaBalance(userAddress || undefined, "TSLA");
-  const { formatted: aaplBal } = useFaBalance(userAddress || undefined, "AAPL");
-  const { formatted: goldBal } = useFaBalance(userAddress || undefined, "GOLD");
+  // No on-chain balances yet in Solana demo
+  const lqdBal = 0;
+  const tslaBal = 0;
+  const aaplBal = 0;
+  const goldBal = 0;
 
   // Build holdings from FA balances; use LQD price as placeholder for value
   type Holding = {

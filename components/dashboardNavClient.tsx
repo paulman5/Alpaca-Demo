@@ -22,21 +22,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
-// import CustomConnectWallet from "@/components/custom-connect-wallet";
 import React from "react";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
-import { useAptosBalance } from "@/hooks/aptos/useAptosBalance";
-import { useAptosNetwork } from "@/context/AptosNetworkContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export function DashboardSidebarNavClient() {
   const { open } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
-  const { isConnected, connect, address, disconnect } = useAptosWallet();
-  const { balanceApt, isLoading: isBalanceLoading } = useAptosBalance();
-  const { network, setNetwork } = useAptosNetwork();
 
   const isActive = (path: string) => {
     if (path === "/app") {
@@ -138,50 +131,9 @@ export function DashboardSidebarNavClient() {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t">
         <div className="space-y-3">
-          {/* Network Switcher */}
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-gray-600">Network</span>
-            <Select value={network} onValueChange={(v) => setNetwork(v as any)}>
-              <SelectTrigger className="h-8 w-[130px] rounded-none">
-                <SelectValue placeholder="Select network" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="testnet">Testnet</SelectItem>
-                <SelectItem value="mainnet">Mainnet</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="mt-1">
+            <WalletMultiButton className="w-full justify-center rounded-none" />
           </div>
-
-          {/* Aptos connect button or wallet pill */}
-          {!isConnected ? (
-            <Button
-              onClick={connect}
-              className="mt-3 bg-black text-white text-sm rounded-none px-4 py-2 border border-gray-600/50 hover:bg-black/90 focus:outline-none"
-            >
-              Connect Wallet
-            </Button>
-          ) : (
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-none border border-gray-200 bg-gray-50 px-3 py-2">
-              <div className="flex min-w-0 items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs text-gray-600 truncate">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </span>
-                  <span className="text-xs font-medium text-gray-900">
-                    {isBalanceLoading ? "Loading…" : balanceApt ? `${balanceApt} APT` : "—"}
-                  </span>
-                </div>
-              </div>
-              <Button
-                variant="secondary"
-                onClick={disconnect}
-                className="shrink-0 text-xs rounded-none"
-              >
-                Disconnect
-              </Button>
-            </div>
-          )}
           {/* <SignOutButton className="w-full flex items-center gap-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-none transition-colors">
             <LogOut className="h-4 w-4" />
             <span>Sign Out</span>

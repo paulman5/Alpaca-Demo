@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { Shield, CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function KYCFlow() {
-  const { address, isConnected } = useAptosWallet();
+  const { publicKey, connected } = useWallet();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +35,7 @@ export default function KYCFlow() {
 
   // Function to refetch KYC status
   const refetch = async () => {
+    const address = publicKey?.toBase58();
     if (!address) return;
     setIsLoading(true);
     setError(null);
@@ -52,13 +53,14 @@ export default function KYCFlow() {
 
   // Load KYC status on component mount and when address changes
   useEffect(() => {
-    if (address) {
+    const addr = publicKey?.toBase58();
+    if (addr) {
       refetch();
     } else {
       setIsVerified(null);
       setError(null);
     }
-  }, [address]);
+  }, [publicKey]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -73,6 +75,7 @@ export default function KYCFlow() {
   };
 
   const handleVerify = async () => {
+    const address = publicKey?.toBase58();
     if (!address) return;
     setIsPending(true);
     try {
@@ -124,7 +127,7 @@ export default function KYCFlow() {
   };
 
 
-  if (!isConnected) {
+  if (!connected) {
     return (
       <Card className="border border-[#004040]/15">
         <CardHeader>
@@ -138,7 +141,7 @@ export default function KYCFlow() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600">
-            Please connect your Aptos wallet to access KYC verification features.
+            Please connect your Solana wallet to access KYC verification features.
           </p>
         </CardContent>
       </Card>
@@ -179,9 +182,9 @@ export default function KYCFlow() {
             </Badge>
           </div>
 
-          {address && (
+          {publicKey && (
             <div className="text-sm text-gray-600">
-              <strong>Address:</strong> {address.slice(0, 6)}...{address.slice(-4)}
+              <strong>Address:</strong> {publicKey.toBase58().slice(0, 6)}...{publicKey.toBase58().slice(-4)}
             </div>
           )}
 

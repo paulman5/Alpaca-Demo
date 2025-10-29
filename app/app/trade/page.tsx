@@ -5,11 +5,8 @@ import TradeTokenSelector from "@/components/features/trade/tradetokenselector";
 import TradeChart from "@/components/features/trade/tradechart";
 import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
-import { useAptosOrders } from "@/hooks/aptos/useAptosOrders";
-import { useFaBalance } from "@/hooks/aptos/useFaBalance";
-import { useSimpleFaBalance } from "@/hooks/aptos/useSimpleFaBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const TOKENS = [
   { label: "LQD", value: "LQD" },
@@ -45,27 +42,19 @@ const TradePage = () => {
     error: "",
   });
 
- const { address: userAddress } = useAptosWallet();
-  // Fetch balances: USDC via simple FA hook, others via generic FA hook
-  const usdcSimple = useSimpleFaBalance(userAddress || undefined);
-  const tokenFa = useFaBalance(userAddress || undefined, selectedToken as any);
-
-  const tokenFormatted = selectedToken === "USDC" ? usdcSimple.formatted : tokenFa.formatted;
-  const tokenDecimals = selectedToken === "USDC" ? usdcSimple.decimals : tokenFa.decimals;
-  const balanceLoading = selectedToken === "USDC" ? usdcSimple.isLoading : tokenFa.isLoading;
-  const _balanceError = selectedToken === "USDC" ? usdcSimple.error : tokenFa.error;
-  const refetchTokenBalance = selectedToken === "USDC" ? usdcSimple.refetch : tokenFa.refetch;
-  const tokenBalance = tokenFormatted ? parseFloat(tokenFormatted) : 0;
-  const { buyAsset, sellAsset, isPending: isOrderPending, error: orderError } =
-    useAptosOrders();
-  const {
-    formatted: usdcFormatted,
-    isLoading: usdcLoading,
-    error: usdcErr,
-    refetch: refetchUSDCBalance,
-  } = usdcSimple;
-  const usdcBalance = usdcFormatted ? parseFloat(usdcFormatted) : 0;
-  const usdcError = Boolean(usdcErr);
+  const { publicKey } = useWallet();
+  const userAddress = publicKey?.toBase58() || null;
+  // Disable on-chain order flow for now; use static values for UI demo
+  const tokenDecimals = 6;
+  const balanceLoading = false;
+  const refetchTokenBalance = () => Promise.resolve();
+  const tokenBalance = 0;
+  const isOrderPending = false;
+  const orderError = null as any;
+  const usdcLoading = false;
+  const refetchUSDCBalance = () => Promise.resolve();
+  const usdcBalance = 0;
+  const usdcError = false;
 
   // Test deposit removed
 
@@ -239,29 +228,12 @@ const TradePage = () => {
       error: "",
     });
 
-    try {
-      // Execute buy order via Aptos module
-      console.log("📤 Sending buy order:", amount.toString());
-      const hash = await buyAsset(selectedToken, amount.toString());
-      setBuyUsdc("");
-
-      // Mark as completed immediately after tx submission and refresh balances
-      setTransactionModal((prev) => ({ ...prev, status: "completed" }));
-      try {
-        await Promise.all([refetchTokenBalance(), refetchUSDCBalance()]);
-      } catch {}
-      // Auto-close modal after 3 seconds
-      setTimeout(() => {
-        setTransactionModal((prev) => ({ ...prev, isOpen: false }));
-      }, 6000);
-    } catch (error) {
-      console.error("❌ Error in buy transaction:", error);
-      setTransactionModal((prev) => ({
-        ...prev,
-        status: "failed",
-        error: "Transaction failed. Please try again.",
-      }));
-    }
+    // Simulate success for demo
+    setBuyUsdc("");
+    setTransactionModal((prev) => ({ ...prev, status: "completed" }));
+    setTimeout(() => {
+      setTransactionModal((prev) => ({ ...prev, isOpen: false }));
+    }, 3000);
   };
 
   const handleSell = async () => {
@@ -315,26 +287,12 @@ const TradePage = () => {
       error: "",
     });
 
-    try {
-      // Execute sell order via Aptos module
-      const hash = await sellAsset(selectedToken, tokenAmount.toString());
-      setSellToken("");
-      // Mark as completed and refresh balances
-      setTransactionModal((prev) => ({ ...prev, status: "completed" }));
-      try {
-        await Promise.all([refetchTokenBalance(), refetchUSDCBalance()]);
-      } catch {}
-      setTimeout(() => {
-        setTransactionModal((prev) => ({ ...prev, isOpen: false }));
-      }, 3000);
-    } catch (error) {
-      console.error("❌ Error in sell transaction:", error);
-      setTransactionModal((prev) => ({
-        ...prev,
-        status: "failed",
-        error: "Transaction failed. Please try again.",
-      }));
-    }
+    // Simulate success for demo
+    setSellToken("");
+    setTransactionModal((prev) => ({ ...prev, status: "completed" }));
+    setTimeout(() => {
+      setTransactionModal((prev) => ({ ...prev, isOpen: false }));
+    }, 3000);
   };
 
   const closeTransactionModal = () => {

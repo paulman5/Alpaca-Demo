@@ -1,44 +1,44 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
-import { AptosNetworkProvider } from "@/context/AptosNetworkContext";
-import { toast } from "sonner";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+  BackpackWalletAdapter,
+  LedgerWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
+import { clusterApiUrl } from "@solana/web3.js";
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 const queryClient = new QueryClient();
 
-// EVM providers removed; Aptos-only app
+const Providers = ({ children }: { children: ReactNode }) => {
+  const endpoint = useMemo(() => clusterApiUrl("devnet"), []);
+  const wallets = useMemo(
+    () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new BackpackWalletAdapter(),
+      new LedgerWalletAdapter(),
+    ],
+    [],
+  );
 
-function AptosWalletConnectionPrompt() {
-  const { isConnected, connect } = useAptosWallet();
-
-  useEffect(() => {
-    if (!isConnected) {
-      toast("Aptos wallet not connected", {
-        description: "Please connect your Aptos wallet to continue.",
-        action: {
-          label: "Connect Aptos Wallet",
-          onClick: connect,
-        },
-        duration: Infinity,
-      });
-    }
-  }, [isConnected, connect]);
-
-  return null;
-}
-
-const Providers = ({ children }: { children: ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AptosNetworkProvider>
-        <AptosWalletConnectionPrompt />
-        {children}
-      </AptosNetworkProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ConnectionProvider endpoint={endpoint}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>{children}</WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export { Providers };

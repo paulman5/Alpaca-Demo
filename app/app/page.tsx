@@ -20,20 +20,15 @@ import {
   PieChart,
   Zap,
 } from "lucide-react";
-import { useTokenBalance } from "@/hooks/aptos/useTokenBalance";
 import { useMarketData } from "@/hooks/api/useMarketData";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
 // import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { Suspense } from "react";
 // import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 function DashboardPage() {
-  const { address: userAddress } = useAptosWallet();
-  const {
-    balance: tokenBalance,
-    isLoading: balanceLoading,
-    isError: balanceError,
-  } = useTokenBalance(userAddress ?? undefined);
+  const { publicKey } = useWallet();
+  const tokenBalance = 0;
   const {
     price: currentPrice,
     previousClose,
