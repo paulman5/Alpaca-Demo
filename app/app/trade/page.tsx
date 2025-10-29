@@ -7,6 +7,9 @@ import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useTokenBalance } from "@/hooks/view/useBalance";
+import { PublicKey } from "@solana/web3.js";
+import { toPk } from "@/helpers/publicKeyConverter";
 
 const TOKENS = [
   { label: "LQD", value: "LQD" },
@@ -44,55 +47,37 @@ const TradePage = () => {
 
   const { publicKey } = useWallet();
   const userAddress = publicKey?.toBase58() || null;
-  // Disable on-chain order flow for now; use static values for UI demo
-  const tokenDecimals = 6;
-  const balanceLoading = false;
-  const refetchTokenBalance = () => Promise.resolve();
-  const tokenBalance = 0;
+  // Resolve token mints (hardcoded) and fetch balances via hook
+
+
+  const MINTS: Record<string, PublicKey | null> = {
+    LQD: toPk("GnYQJqqkiN5CTJhCT8Ko3Qd1JQYNj5n91gLJinamt5Xg"),
+    TSLA: null,
+    AAPL: null,
+    GOLD: null,
+  };
+  const USDC_MINT = null; // set to a valid PublicKey string when available
+
+  const ownerPk = publicKey ?? null;
+  const tokenMint = MINTS[selectedToken] ?? null;
+  const tokenBal = useTokenBalance(tokenMint, ownerPk);
+  const usdcBal = useTokenBalance(USDC_MINT, ownerPk);
+
+  // Derived balances for UI
+  const tokenBalance = tokenBal.amountUi ? parseFloat(tokenBal.amountUi) : 0;
+  const balanceLoading = Boolean(tokenBal.isLoading);
+  const usdcBalance = usdcBal.amountUi ? parseFloat(usdcBal.amountUi) : 0;
+  const usdcLoading = Boolean(usdcBal.isLoading);
+  const usdcError = Boolean(usdcBal.error);
+  const refetchTokenBalance = tokenBal.refetch;
+  const refetchUSDCBalance = usdcBal.refetch;
+
+  // Disable on-chain order flow for now; keep form interactions local
+  const tokenDecimals = 9;
   const isOrderPending = false;
   const orderError = null as any;
-  const usdcLoading = false;
-  const refetchUSDCBalance = () => Promise.resolve();
-  const usdcBalance = 0;
-  const usdcError = false;
 
-  // Test deposit removed
-
-  // Monitor order transaction state
-  useEffect(() => {
-    if (transactionModal.isOpen && transactionModal.status === "waiting") {
-      if (false) {
-        // Transaction completed successfully
-        setTransactionModal((prev) => ({
-          ...prev,
-          status: "completed",
-        }));
-
-        // Refetch balances to show updated amounts
-        refetchTokenBalance();
-        refetchUSDCBalance();
-
-        // Auto-close modal after 3 seconds
-        setTimeout(() => {
-          setTransactionModal((prev) => ({ ...prev, isOpen: false }));
-        }, 3000);
-      } else if (orderError) {
-        // Transaction failed - show simple error message
-        setTransactionModal((prev) => ({
-          ...prev,
-          status: "failed",
-          error: "Transaction timed out. Please try again.",
-        }));
-      }
-    }
-  }, [
-    orderError,
-    transactionModal.isOpen,
-    transactionModal.status,
-    refetchTokenBalance,
-    refetchUSDCBalance,
-  ]);
-
+  
   useEffect(() => {
     async function fetchETFData() {
       try {
@@ -159,9 +144,9 @@ const TradePage = () => {
   }, [mdLoading, mdPrice, selectedToken]);
 
   // Refetch token balance when switching asset or user changes
-  useEffect(() => {
-    void refetchTokenBalance();
-  }, [selectedToken, userAddress, refetchTokenBalance]);
+useEffect(() => {
+  if (tokenMint && ownerPk) void refetchTokenBalance();
+}, [selectedToken, tokenMint, ownerPk, refetchTokenBalance]);
 
   // Use chart data as primary source for price calculations
   const chartLatestPrice =

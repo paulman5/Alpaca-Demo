@@ -13,13 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useAptosWallet } from "@/hooks/aptos/useAptosWallet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import {
   Select,
@@ -84,7 +78,8 @@ export default function TradeForm({
   priceChangePercent,
   priceChange,
 }: TradeFormProps) {
-  const { address: userAddress } = useAptosWallet();
+  const { publicKey } = useWallet();
+  const userAddress = publicKey?.toBase58();
 
   // KYC status via external API (align with KYC page)
   const [hasKYCClaim, setHasKYCClaim] = useState<boolean>(false);
