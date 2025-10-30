@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import {
   Select,
@@ -22,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useKycStatus from "@/hooks/view/useVerificationStatus";
+import { PublicKey } from "@solana/web3.js";
 
 type TradeFormProps = {
   tradeType: "buy" | "sell";
@@ -79,39 +82,13 @@ export default function TradeForm({
   priceChange,
 }: TradeFormProps) {
   const { publicKey } = useWallet();
-  const userAddress = publicKey?.toBase58();
-
-  // KYC status via external API (align with KYC page)
-  const [hasKYCClaim, setHasKYCClaim] = useState<boolean>(false);
-  const [kycLoading, setKycLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    const checkKyc = async () => {
-      if (!userAddress) {
-        setHasKYCClaim(false);
-        return;
-      }
-      setKycLoading(true);
-      try {
-        const res = await fetch(
-          `https://92a7be451ddb4f83627f81b188f8137bba80a65d-3000.dstack-prod5.phala.network/kyc/status/${userAddress}`,
-          { cache: "no-store" },
-        );
-        if (!res.ok) throw new Error(String(res.status));
-        const data = await res.json();
-        setHasKYCClaim(Boolean(data?.isVerified === true));
-      } catch (_e) {
-        setHasKYCClaim(false);
-      } finally {
-        setKycLoading(false);
-      }
-    };
-    void checkKyc();
-  }, [userAddress]);
+  // Dummy credential/schema PDAs (replace for real per-token/pool if needed)
+  const credentialPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const schemaPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda, schemaPda, targetUser: publicKey });
 
   // Determine if buy button should be disabled
-  const isBuyDisabled =
-    !buyUsdc || isOrderPending || !hasKYCClaim || kycLoading;
+  const isBuyDisabled = !buyUsdc || isOrderPending || !isKycVerified || kycLoading;
 
   // Display helper: balances are already human-formatted from hooks
   const displayTokenBalance = tokenBalance;
@@ -352,7 +329,7 @@ export default function TradeForm({
               )}
 
               {/* Verification Warning */}
-              {!hasKYCClaim && !kycLoading && (
+              {!isKycVerified && !kycLoading && (
                 <div className="mb-4 p-4 rounded-none bg-amber-50 border border-amber-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="w-4 h-4 text-amber-600" />
@@ -377,7 +354,7 @@ export default function TradeForm({
                     <LoadingSpinner />
                     {"Processing..."}
                   </>
-                ) : !hasKYCClaim && !kycLoading ? (
+                ) : !isKycVerified && !kycLoading ? (
                   "KYC Required"
                 ) : (
                   `Buy S${selectedToken}`

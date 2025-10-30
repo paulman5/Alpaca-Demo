@@ -7,60 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import useKycStatus from "@/hooks/view/useVerificationStatus";
+import { PublicKey } from "@solana/web3.js";
 
 export default function KYCFlow() {
   const { publicKey, connected } = useWallet();
-  const [isVerified, setIsVerified] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // Dummy credential/schema PDAs (replace values as needed)
+  const credentialPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const schemaPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  // Use KYC hook
+  const { isKycVerified, loading, error, refetch } = useKycStatus({
+    credentialPda,
+    schemaPda,
+    targetUser: publicKey,
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPending, setIsPending] = useState(false);
-
-  // Function to check KYC status using external API
-  const checkKycStatus = async (userAddress: string): Promise<boolean> => {
-    const response = await fetch(
-      `https://92a7be451ddb4f83627f81b188f8137bba80a65d-3000.dstack-prod5.phala.network/kyc/status/${userAddress}`
-    );
-    
-    console.log("kyc status: ", response);
-    if (!response.ok) {
-      throw new Error(`KYC status check failed: ${response.status}`);
-    }
-    
-    const data = await response.json();
-
-    console.log("kyc status data: ", data);
-    return data.isVerified === true;
-  };
-
-  // Function to refetch KYC status
-  const refetch = async () => {
-    const address = publicKey?.toBase58();
-    if (!address) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const verified = await checkKycStatus(address);
-      setIsVerified(verified);
-      return { data: verified };
-    } catch (e: any) {
-      setError(e?.message || "Failed to check KYC status");
-      return { data: null };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load KYC status on component mount and when address changes
-  useEffect(() => {
-    const addr = publicKey?.toBase58();
-    if (addr) {
-      refetch();
-    } else {
-      setIsVerified(null);
-      setError(null);
-    }
-  }, [publicKey]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -74,6 +37,7 @@ export default function KYCFlow() {
     }
   };
 
+  // The rest of the handleVerify logic (and all checkKycStatus/isVerified state) can be left as is, or refactored if your on-chain KYC includes a verification flow too
   const handleVerify = async () => {
     const address = publicKey?.toBase58();
     if (!address) return;
@@ -100,12 +64,12 @@ export default function KYCFlow() {
       const TIMEOUT_MS = 30000;
       const poll = setInterval(async () => {
         try {
-          const verified = await checkKycStatus(address);
+          const verified = await refetch(); // Use refetch from hook
           if (verified) {
             clearInterval(poll);
             toast.dismiss(pollingToastId);
             toast.success("KYC verified successfully!");
-            setIsVerified(true);
+            // setIsVerified(true); // This state is now managed by the hook
             setIsPending(false);
           } else if (Date.now() - startedAt > TIMEOUT_MS) {
             clearInterval(poll);
@@ -163,22 +127,22 @@ export default function KYCFlow() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {isLoading ? (
+              {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-[#004040]" />
-              ) : isVerified ? (
+              ) : isKycVerified ? (
                 <CheckCircle className="h-5 w-5 text-green-600" />
               ) : (
                 <XCircle className="h-5 w-5 text-red-600" />
               )}
               <span className="font-medium">
-                {isLoading ? "Checking status..." : isVerified ? "Verified" : "Not Verified"}
+                {loading ? "Checking status..." : isKycVerified ? "Verified" : "Not Verified"}
               </span>
             </div>
             <Badge 
-              variant={isVerified ? "default" : "secondary"}
-              className={isVerified ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}
+              variant={isKycVerified ? "default" : "secondary"}
+              className={isKycVerified ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}
             >
-              {isVerified ? "KYC Verified" : "Not KYC Verified"}
+              {isKycVerified ? "KYC Verified" : "Not KYC Verified"}
             </Badge>
           </div>
 
@@ -209,7 +173,7 @@ export default function KYCFlow() {
               Refresh Status
             </Button>
 
-            {!isVerified && (
+            {!isKycVerified && (
               <Button
                 onClick={handleVerify}
                 isDisabled={isPending}
