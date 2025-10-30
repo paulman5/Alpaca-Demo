@@ -238,8 +238,8 @@ export function useBuyAssetManual(): UseBuyManualResult {
         preflightCommitment: "confirmed",
       });
 
-      console.log('✅ Transaction sent! Signature:', sig);
-      console.log('⏳ Confirming transaction...');
+      console.log(' Transaction sent! Signature:', sig);
+      console.log(' Confirming transaction...');
 
       await connection.confirmTransaction({ 
         signature: sig, 
@@ -247,7 +247,7 @@ export function useBuyAssetManual(): UseBuyManualResult {
         lastValidBlockHeight 
       }, "confirmed");
 
-      console.log('🎉 Transaction confirmed!');
+      console.log(' Transaction confirmed!');
       return sig;
     } catch (e: any) {
       console.error('❌ Transaction failed:', e);

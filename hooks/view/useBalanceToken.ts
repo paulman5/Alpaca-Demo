@@ -38,15 +38,15 @@ export function useBalanceToken(mint: PublicKey | null, owner: PublicKey | null,
     try {
       const ata = await ataPromise;
       const { value } = await connection.getTokenAccountBalance(ata, "confirmed");
+      // Force UI to use 12-decimal display for SLQD
       setAmountRaw(value.amount);
-      setDecimals(value.decimals);
-      setAmountUi(value.uiAmountString ?? null);
+      setDecimals(12);
+      const ui = Number(value.amount) / 1_000_000_000_000; // 1e12
+      setAmountUi(isFinite(ui) ? ui.toString() : "0");
     } catch (e: any) {
       setError(e?.message ?? "Failed to fetch token balance");
       setAmountRaw(null); setAmountUi(null); setDecimals(null);
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   }, [connection, ataPromise]);
 
   useEffect(() => { if (mint && owner) fetchBalance(); }, [mint, owner, fetchBalance]);
