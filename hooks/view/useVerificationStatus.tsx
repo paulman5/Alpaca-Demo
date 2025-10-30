@@ -2,26 +2,38 @@ import { useCallback, useEffect, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 
-// SAS program id (kept for reference; sas-lib handles PDA derivation internally)
+// SAS program id (kept for reference; not directly used when calling sas-lib)
 const SAS_PROGRAM_ID = new PublicKey("22zoJMtdu4tQc2PzL74ZUT7FrwgB1Udec8DdW4yw4BdG");
 
-export function useKycStatus() {
+export function useKycStatus({
+  credentialPda,
+  schemaPda,
+  targetUser,
+  rpcUrl,
+}: {
+  credentialPda: PublicKey;
+  schemaPda: PublicKey;
+  targetUser?: PublicKey | null;
+  rpcUrl?: string;
+}) {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
   const [isKycVerified, setIsKycVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Hardcoded values for testing as requested
-  const credential = "B4PtmaDJdFQBxpvwdLB3TDXuLd69wnqXexM2uBqqfMXL";
-  const schema = "GvJbCuyqzTiACuYwFzqZt7cEPXSeD5Nq3GeWBobFfU8x";
-  const nonce = "ht9sDRfia8TYMoCAc3aZyBkp13fgcoPi6Lrs8JSgwkC";
-
   const fetchKyc = useCallback(async () => {
     setLoading(true);
     setError(null);
     setIsKycVerified(null);
     try {
+      const userPk = targetUser ?? publicKey ?? null;
+      if (!userPk || !credentialPda || !schemaPda) {
+        setIsKycVerified(false);
+        setLoading(false);
+        return;
+      }
+
       // Dynamically import sas-lib and gill to avoid bundling issues if unavailable
       const [{ createSolanaClient }, sas] = await Promise.all([
         import("gill"),
@@ -29,9 +41,12 @@ export function useKycStatus() {
       ]);
       const { deriveAttestationPda, fetchSchema, fetchAttestation, deserializeAttestationData } = sas as any;
 
-      // Use provided Alchemy devnet RPC URL for speed
-      const rpcUrl = "https://solana-devnet.g.alchemy.com/v2/fCmYqFoeAKRXmT4X43KhU";
-      const client = createSolanaClient({ urlOrMoniker: rpcUrl });
+      const resolvedRpcUrl = rpcUrl || "https://solana-devnet.g.alchemy.com/v2/fCmYqFoeAKRXmT4X43KhU";
+      const client = createSolanaClient({ urlOrMoniker: resolvedRpcUrl });
+
+      const credential = credentialPda.toBase58();
+      const schema = schemaPda.toBase58();
+      const nonce = userPk.toBase58();
 
       const [attPda] = await deriveAttestationPda({ credential, schema, nonce });
 
@@ -44,7 +59,6 @@ export function useKycStatus() {
       const isValid = now < att.data.expiry && data.kycCompleted === 1;
       setIsKycVerified(Boolean(isValid));
     } catch (err: any) {
-      // If account not found, show Not Verified without error banner
       const msg = (err?.message || "").toString();
       if (msg.includes("Account not found") || msg.includes("AccountNotFound")) {
         setIsKycVerified(false);
@@ -56,7 +70,7 @@ export function useKycStatus() {
     } finally {
       setLoading(false);
     }
-  }, [connection]);
+  }, [connection, credentialPda, schemaPda, targetUser, publicKey, rpcUrl]);
 
   useEffect(() => {
     fetchKyc();
