@@ -93,6 +93,25 @@ function TradeForm({
   const schPda = schemaPda ?? new PublicKey("GvJbCuyqzTiACuYwFzqZt7cEPXSeD5Nq3GeWBobFfU8x");
   const user = targetUser ?? publicKey;
   const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user, autoFetch: true });
+  const handleVerifyKyc = async () => {
+    if (!publicKey) return;
+    try {
+      await fetch("https://spout-backend-solana.onrender.com/web3/attest-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userPubkey: publicKey.toBase58(),
+          attestationData: { kycCompleted: 1 },
+        }),
+      });
+      // Optionally refetch KYC after a brief delay
+      setTimeout(() => {
+        // soft refresh via window focus or trigger route change if needed
+      }, 500);
+    } catch (e) {
+      // noop UI for now
+    }
+  };
 
   // Buy asset hook
   const { buyManual, isSubmitting, error: buyError } = useBuyAssetManual();
@@ -389,6 +408,11 @@ function TradeForm({
                     You need to complete verification before you can buy tokens.
                     Please complete the verification process in your profile.
                   </p>
+                  <div className="mt-2">
+                    <Button size="sm" variant="outline" onClick={handleVerifyKyc}>
+                      Verify KYC
+                    </Button>
+                  </div>
                 </div>
               )}
 

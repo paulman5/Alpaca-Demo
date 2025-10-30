@@ -49,49 +49,26 @@ export default function KYCFlow({ credentialPda, schemaPda, targetUser }: KYCFlo
     if (!address) return;
     setIsPending(true);
     try {
-      // Call external KYC verification API first
-      const resp = await fetch(
-        "https://92a7be451ddb4f83627f81b188f8137bba80a65d-3000.dstack-prod5.phala.network/kyc/verify",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userAddress: address }),
-        },
-      );
+      // Call backend attestation endpoint
+      const resp = await fetch("https://spout-backend-solana.onrender.com/web3/attest-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userPubkey: address,
+          attestationData: { kycCompleted: 1 },
+        }),
+      });
       if (!resp.ok) {
         const msg = await resp.text();
-        throw new Error(`KYC API failed: ${resp.status} ${msg}`);
+        throw new Error(`Attest API failed: ${resp.status} ${msg}`);
       }
-      
-      // Poll external API KYC status every 2s up to 30s, then resolve
-      const pollingToastId = toast.loading("Verification submitted. Checking status...");
-      const startedAt = Date.now();
-      const POLL_INTERVAL_MS = 2000;
-      const TIMEOUT_MS = 30000;
-      const poll = setInterval(async () => {
-        try {
-          const verified = await refetch(); // Use refetch from hook
-          if (verified) {
-            clearInterval(poll);
-            toast.dismiss(pollingToastId);
-            toast.success("KYC verified successfully!");
-            // setIsVerified(true); // This state is now managed by the hook
-            setIsPending(false);
-          } else if (Date.now() - startedAt > TIMEOUT_MS) {
-            clearInterval(poll);
-            toast.dismiss(pollingToastId);
-            toast("Verification still processing. Please check again shortly.");
-            setIsPending(false);
-          }
-        } catch (e: any) {
-          clearInterval(poll);
-          toast.dismiss(pollingToastId);
-          toast.error(e?.message || "Failed to check KYC status");
-          setIsPending(false);
-        }
-      }, POLL_INTERVAL_MS);
+      // brief delay then refetch on-chain status
+      await new Promise(r => setTimeout(r, 1000));
+      await refetch();
+      toast.success("KYC attestation submitted");
     } catch (e: any) {
-      toast.error(e?.message || "Failed to submit KYC verification");
+      toast.error(e?.message || "Failed to submit KYC attestation");
+    } finally {
       setIsPending(false);
     }
   };
