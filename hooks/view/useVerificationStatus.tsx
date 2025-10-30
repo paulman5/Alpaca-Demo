@@ -15,7 +15,7 @@ export function useKycStatus() {
   // Hardcoded values for testing as requested
   const credential = "B4PtmaDJdFQBxpvwdLB3TDXuLd69wnqXexM2uBqqfMXL";
   const schema = "GvJbCuyqzTiACuYwFzqZt7cEPXSeD5Nq3GeWBobFfU8x";
-  const nonce = "DoBKyQ8wJF5veKrNcxS5BeSCW4bpAwHqDQpbaSpRTdvc";
+  const nonce = "ht9sDRfia8TYMoCAc3aZyBkp13fgcoPi6Lrs8JSgwkC";
 
   const fetchKyc = useCallback(async () => {
     setLoading(true);
@@ -44,9 +44,15 @@ export function useKycStatus() {
       const isValid = now < att.data.expiry && data.kycCompleted === 1;
       setIsKycVerified(Boolean(isValid));
     } catch (err: any) {
-      // If any step fails (including account not found), treat as not verified
-      setIsKycVerified(false);
-      setError(err?.message || "Failed to check KYC");
+      // If account not found, show Not Verified without error banner
+      const msg = (err?.message || "").toString();
+      if (msg.includes("Account not found") || msg.includes("AccountNotFound")) {
+        setIsKycVerified(false);
+        setError(null);
+      } else {
+        setIsKycVerified(false);
+        setError(msg || "Failed to check KYC");
+      }
     } finally {
       setLoading(false);
     }
