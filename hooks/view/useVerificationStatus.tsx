@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 
@@ -10,17 +10,20 @@ export function useKycStatus({
   schemaPda,
   targetUser,
   rpcUrl,
+  autoFetch = true,
 }: {
   credentialPda: PublicKey;
   schemaPda: PublicKey;
   targetUser?: PublicKey | null;
   rpcUrl?: string;
+  autoFetch?: boolean;
 }) {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
   const [isKycVerified, setIsKycVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prevParams = useRef<string | null>(null);
 
   const fetchKyc = useCallback(async () => {
     setLoading(true);
@@ -72,7 +75,21 @@ export function useKycStatus({
     }
   }, [connection, credentialPda, schemaPda, targetUser, publicKey, rpcUrl]);
 
-  // Remove auto-fetch: call fetchKyc only via returned refetch
+  // Auto-fetch KYC status when core ID or user or network changes, but not on every render
+  useEffect(() => {
+    if (!autoFetch) return;
+    const userPk = targetUser ?? publicKey ?? null;
+    const sig = [
+      credentialPda?.toBase58?.(),
+      schemaPda?.toBase58?.(),
+      userPk?.toBase58?.(),
+      rpcUrl || ""
+    ].join(":");
+    if (prevParams.current !== sig) {
+      prevParams.current = sig;
+      fetchKyc();
+    }
+  }, [autoFetch, credentialPda, schemaPda, targetUser, publicKey, rpcUrl, fetchKyc]);
 
   return {
     isKycVerified,

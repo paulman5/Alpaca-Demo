@@ -57,7 +57,7 @@ type TradeFormProps = {
   targetUser?: PublicKey;
 };
 
-export default function TradeForm({
+function TradeForm({
   tradeType,
   setTradeType,
   selectedToken,
@@ -91,10 +91,10 @@ export default function TradeForm({
   const credPda = credentialPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
   const schPda = schemaPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
   const user = targetUser ?? publicKey;
-  const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user });
+  const { isKycVerified, loading: kycLoading, refetch: refetchKyc } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user });
 
   // Determine if buy button should be disabled
-  const isBuyDisabled = !buyUsdc || isOrderPending || !isKycVerified || kycLoading;
+  const isBuyDisabled = !buyUsdc || isOrderPending || isKycVerified !== true || kycLoading;
 
   // Display helper: balances are already human-formatted from hooks
   const displayTokenBalance = tokenBalance;
@@ -335,7 +335,7 @@ export default function TradeForm({
               )}
 
               {/* Verification Warning */}
-              {!isKycVerified && !kycLoading && (
+              {isKycVerified === false && !kycLoading && (
                 <div className="mb-4 p-4 rounded-none bg-amber-50 border border-amber-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="w-4 h-4 text-amber-600" />
@@ -347,6 +347,11 @@ export default function TradeForm({
                     You need to complete verification before you can buy tokens.
                     Please complete the verification process in your profile.
                   </p>
+                  <div className="mt-3">
+                    <Button variant="outline" className="rounded-none" onClick={() => refetchKyc()}>
+                      Refresh Verification
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -360,7 +365,7 @@ export default function TradeForm({
                     <LoadingSpinner />
                     {"Processing..."}
                   </>
-                ) : !isKycVerified && !kycLoading ? (
+                ) : isKycVerified === false && !kycLoading ? (
                   "KYC Required"
                 ) : (
                   `Buy S${selectedToken}`
@@ -472,3 +477,5 @@ export default function TradeForm({
     </div>
   );
 }
+
+export default TradeForm;
