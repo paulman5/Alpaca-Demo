@@ -57,7 +57,6 @@ const TradePage = () => {
 
   const { publicKey } = useWallet();
   const userAddress = publicKey?.toBase58() || null;
-  // Resolve token mints (hardcoded) and fetch balances via hook
 
 
   const ownerPk = useMemo(() => publicKey ?? null, [publicKey]);

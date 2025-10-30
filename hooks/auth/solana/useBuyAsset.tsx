@@ -84,7 +84,25 @@ export function useBuyAssetManual(): UseBuyManualResult {
       const treasuryUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, CONFIG_PDA, true);
       const ordersUsdcAccount =
         args?.ordersUsdcAccountOverride ?? treasuryUsdcAta;
-      const attestationAccount = args?.attestationPdaOverride ?? DEFAULT_ATTESTATION_PDA;
+      // Derive attestation PDA for the connected user (sas-lib uses base58 nonce)
+      let attestationAccount: PublicKey;
+      if (args?.attestationPdaOverride) {
+        attestationAccount = args.attestationPdaOverride;
+      } else {
+        try {
+          const sas = await import("sas-lib");
+          const nonce = publicKey.toBase58();
+          const [attPda] = await (sas as any).deriveAttestationPda({
+            credential: CREDENTIAL_PDA.toBase58(),
+            schema: SCHEMA_PDA.toBase58(),
+            nonce,
+          });
+          attestationAccount = new PublicKey(attPda);
+        } catch (_) {
+          // Fallback to default only if derivation library unavailable
+          attestationAccount = DEFAULT_ATTESTATION_PDA;
+        }
+      }
       const [ordersAuthority] = PublicKey.findProgramAddressSync(
         [Buffer.from("orders_authority")],
         PROGRAM_ID
