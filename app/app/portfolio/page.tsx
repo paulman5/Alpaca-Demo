@@ -11,13 +11,28 @@ import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 // import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import { LoadingSpinner } from "@/components/loadingSpinner";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { useBalanceToken } from "@/hooks/view/useBalanceToken";
+import { useBalanceUSDC } from "@/hooks/view/useBalanceUSDC";
 
 function PortfolioPage() {
   const { publicKey } = useWallet();
   const userAddress = publicKey?.toBase58() || null;
-  const balanceLoading = false;
+  const ownerPk = useMemo(() => publicKey ?? null, [publicKey]);
+
+  // sLQD mint (Token-2022)
+  const LQD_MINT = useMemo(() => new PublicKey("ChcZdMV4jwXcvZQUWHEjMqMJBu3v62up2cJqY8CUkSCj"), []);
+  // USDC mint (classic)
+  const USDC_MINT = useMemo(() => new PublicKey("Bd8tBm8WNPhmW5FjvAkisw4C9G3NEE7NowEW6VUuMHjW"), []);
+
+  // Balances
+  const slqdBalHook = useBalanceToken(LQD_MINT, ownerPk);
+  const usdcBalHook = useBalanceUSDC(USDC_MINT, ownerPk);
+  const lqdBal = useMemo(() => Number(slqdBalHook.amountUi ?? 0) || 0, [slqdBalHook.amountUi]);
+  const usdcBal = useMemo(() => Number(usdcBalHook.amountUi ?? 0) || 0, [usdcBalHook.amountUi]);
+  const balanceLoading = slqdBalHook.isLoading || usdcBalHook.isLoading;
 
   // Fetch per-asset market data
   const {
@@ -71,12 +86,6 @@ function PortfolioPage() {
 
   const { returns, isLoading: returnsLoading } = useReturns("LQD");
   const { username } = useCurrentUser();
-  // const {
-  //   activities,
-  //   isLoading: activitiesLoading,
-  //   hasMore,
-  //   loadMore,
-  // } = useRecentActivity(userAddress);
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
     return num.toLocaleString(undefined, {
@@ -86,13 +95,12 @@ function PortfolioPage() {
   };
   const formatPercent = (num: number) => num.toFixed(2);
 
-  // No on-chain balances yet in Solana demo
-  const lqdBal = 0;
+  // Other demo balances remain zero
   const tslaBal = 0;
   const aaplBal = 0;
   const goldBal = 0;
 
-  // Build holdings from FA balances; use LQD price as placeholder for value
+  // Build holdings; sLQD value = decimal amount * LQD price
   type Holding = {
     symbol: string;
     name: string;
@@ -109,10 +117,18 @@ function PortfolioPage() {
     {
       symbol: "LQD",
       name: "Spout US Corporate Bond Token",
-      shares: Number(lqdBal || 0),
+      shares: lqdBal,
       avgPrice: lqdPrevClose || 0,
       currentPrice: lqdPrice ?? 0,
-      value: Number(lqdBal || 0) * (lqdPrice ?? 0),
+      value: lqdBal * (lqdPrice ?? 0),
+    },
+    {
+      symbol: "USDC",
+      name: "USD Coin",
+      shares: usdcBal,
+      avgPrice: 1,
+      currentPrice: 1,
+      value: usdcBal * 1,
     },
     {
       symbol: "TSLA",
