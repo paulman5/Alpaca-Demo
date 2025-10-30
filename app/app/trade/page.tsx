@@ -7,7 +7,8 @@ import TradeForm from "@/components/features/trade/tradeform";
 import TransactionModal from "@/components/ui/transaction-modal";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useTokenBalance } from "@/hooks/view/useBalance";
+import { useBalanceUSDC } from "@/hooks/view/useBalanceUSDC";
+import { useBalanceToken } from "@/hooks/view/useBalanceToken";
 import { PublicKey } from "@solana/web3.js";
 import { toPk } from "@/helpers/publicKeyConverter";
 
@@ -62,8 +63,8 @@ const TradePage = () => {
   const ownerPk = useMemo(() => publicKey ?? null, [publicKey]);
   const tokenMint = useMemo(() => MINTS[selectedToken] ?? null, [selectedToken]);
   const usdcMint = useMemo(() => USDC_MINT, []);
-  const tokenBal = useTokenBalance(tokenMint, ownerPk);
-  const usdcBal = useTokenBalance(usdcMint, ownerPk);
+  const tokenBal = useBalanceToken(tokenMint, ownerPk);
+  const usdcBal = useBalanceUSDC(usdcMint, ownerPk);
 
   // Derived balances for UI
   const tokenBalance = tokenBal.amountUi ? parseFloat(tokenBal.amountUi) : 0;

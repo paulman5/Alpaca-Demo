@@ -12,14 +12,8 @@ export type UseTokenBalanceResult = {
   refetch: () => Promise<void>;
 };
 
-export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null): UseTokenBalanceResult {
-  console.log('useTokenBalance rendered', { mint, owner });
+export function useBalanceUSDC(mint: PublicKey | null, owner: PublicKey | null): UseTokenBalanceResult {
   const { connection } = useConnection();
-
-  // Use provided mint and owner
-  const effectiveMint = mint;
-  const effectiveOwner = owner;
-
   const [amountRaw, setAmountRaw] = useState<string | null>(null);
   const [decimals, setDecimals] = useState<number | null>(null);
   const [amountUi, setAmountUi] = useState<string | null>(null);
@@ -27,16 +21,12 @@ export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null)
   const [error, setError] = useState<string | null>(null);
 
   const ataPromise = useMemo(() => {
-    if (!effectiveMint || !effectiveOwner) return null;
-    return getAssociatedTokenAddress(effectiveMint, effectiveOwner);
-  }, [effectiveMint, effectiveOwner]);
+    if (!mint || !owner) return null;
+    return getAssociatedTokenAddress(mint, owner);
+  }, [mint, owner]);
 
   const fetchBalance = useCallback(async () => {
-    console.log('fetchBalance CALLED in useTokenBalance');
-    if (!ataPromise) {
-      setAmountRaw(null); setAmountUi(null); setDecimals(null);
-      return;
-    }
+    if (!ataPromise) { setAmountRaw(null); setAmountUi(null); setDecimals(null); return; }
     setIsLoading(true); setError(null);
     try {
       const ata = await ataPromise;
@@ -52,11 +42,9 @@ export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null)
     }
   }, [connection, ataPromise]);
 
-  useEffect(() => {
-    if (mint && owner) {
-      fetchBalance();
-    }
-  }, [mint, owner, fetchBalance]);
+  useEffect(() => { if (mint && owner) fetchBalance(); }, [mint, owner, fetchBalance]);
 
   return { amountRaw, decimals, amountUi, isLoading, error, refetch: fetchBalance };
 }
+
+export default useBalanceUSDC;
