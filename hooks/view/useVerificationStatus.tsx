@@ -72,9 +72,7 @@ export function useKycStatus({
     }
   }, [connection, credentialPda, schemaPda, targetUser, publicKey, rpcUrl]);
 
-  useEffect(() => {
-    fetchKyc();
-  }, [fetchKyc]);
+  // Remove auto-fetch: call fetchKyc only via returned refetch
 
   return {
     isKycVerified,
