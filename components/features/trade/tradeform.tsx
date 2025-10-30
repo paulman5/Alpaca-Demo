@@ -26,6 +26,7 @@ import {
 import useKycStatus from "@/hooks/view/useVerificationStatus";
 import { PublicKey } from "@solana/web3.js";
 import useBuyAssetManual from "@/hooks/auth/solana/useBuyAsset";
+import useSellAssetManual from "@/hooks/auth/solana/useSellAsset";
 
 type TradeFormProps = {
   tradeType: "buy" | "sell";
@@ -95,6 +96,7 @@ function TradeForm({
 
   // Buy asset hook
   const { buyManual, isSubmitting, error: buyError } = useBuyAssetManual();
+  const { sellManual, isSubmitting: isSelling, error: sellError } = useSellAssetManual();
 
   // Compute what is actually pending
   const isOrderPendingFinal = isSubmitting || externalIsOrderPending;
@@ -117,6 +119,22 @@ function TradeForm({
       });
     } catch (e) {
       // error is exposed via buyError; no-op here
+    }
+  };
+
+  // Sell handler
+  const handleSellClick = async () => {
+    // eslint-disable-next-line no-console
+    console.log('handleSell clicked', { isSelling, sellToken, latestPrice, selectedToken });
+    if (!sellToken || !latestPrice || !selectedToken || isSelling) return;
+    try {
+      await sellManual({
+        ticker: selectedToken,
+        assetAmount: Math.round(Number(sellToken) * 1_000_000),
+        manualPrice: Math.round(Number(latestPrice) * 1_000_000),
+      });
+    } catch (e) {
+      // error is surfaced via sellError
     }
   };
 
@@ -480,10 +498,10 @@ function TradeForm({
 
               <Button
                 className="w-full mt-4 font-semibold text-lg py-3 bg-[#a7c6ed] hover:bg-[#9a5fe3]"
-                onClick={handleSell}
-                isDisabled={!sellToken || isOrderPendingFinal}
+                onClick={handleSellClick}
+                isDisabled={!sellToken || isSelling}
               >
-                {isOrderPendingFinal ? (
+                {isSelling ? (
                   <>
                     <LoadingSpinner />
                     {"Processing..."}
@@ -492,6 +510,9 @@ function TradeForm({
                   `Sell S${selectedToken}`
                 )}
               </Button>
+              {sellError && (
+                <div className="mt-2 text-xs text-red-600 break-all">{sellError}</div>
+              )}
             </>
           )}
         </CardContent>
