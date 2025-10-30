@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import useKycStatus from "@/hooks/view/useVerificationStatus";
 import { PublicKey } from "@solana/web3.js";
+import useBuyAssetManual from "@/hooks/auth/solana/useBuyAsset";
 
 type TradeFormProps = {
   tradeType: "buy" | "sell";
@@ -74,8 +75,7 @@ function TradeForm({
   usdcLoading,
   usdcError,
   balanceLoading,
-  isOrderPending,
-  handleBuy,
+  isOrderPending: externalIsOrderPending,
   handleSell,
   buyFeeUsdc,
   netReceiveTokens,
@@ -93,8 +93,32 @@ function TradeForm({
   const user = targetUser ?? publicKey;
   const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user, autoFetch: true });
 
+  // Buy asset hook
+  const { buyManual, isSubmitting, error: buyError } = useBuyAssetManual();
+
+  // Compute what is actually pending
+  const isOrderPendingFinal = isSubmitting || externalIsOrderPending;
+
   // Determine if buy button should be disabled
-  const isBuyDisabled = !buyUsdc || isOrderPending || isKycVerified !== true || kycLoading;
+  const isBuyDisabled = !buyUsdc || isSubmitting || isOrderPendingFinal || isKycVerified !== true || kycLoading;
+
+  // Buy handler
+  const handleBuy = async () => {
+    // Debug: prove click path
+    // eslint-disable-next-line no-console
+    console.log('handleBuy clicked', { isKycVerified, kycLoading, isSubmitting, buyUsdc, latestPrice });
+    if (isBuyDisabled) return;
+    if (!buyUsdc || !latestPrice || !selectedToken) return;
+    try {
+      await buyManual({
+        ticker: selectedToken,
+        usdcAmount: Math.round(Number(buyUsdc) * 1_000_000), // assuming form value is in human units
+        manualPrice: Math.round(Number(latestPrice) * 1_000_000),
+      });
+    } catch (e) {
+      // error is exposed via buyError; no-op here
+    }
+  };
 
   // Display helper: balances are already human-formatted from hooks
   const displayTokenBalance = tokenBalance;
@@ -355,7 +379,7 @@ function TradeForm({
                 onClick={handleBuy}
                 isDisabled={isBuyDisabled}
               >
-                {isOrderPending ? (
+                {isOrderPendingFinal ? (
                   <>
                     <LoadingSpinner />
                     {"Processing..."}
@@ -366,6 +390,9 @@ function TradeForm({
                   `Buy S${selectedToken}`
                 )}
               </Button>
+              {buyError && (
+                <div className="mt-2 text-xs text-red-600 break-all">{buyError}</div>
+              )}
             </>
           ) : (
             <>
@@ -454,9 +481,9 @@ function TradeForm({
               <Button
                 className="w-full mt-4 font-semibold text-lg py-3 bg-[#a7c6ed] hover:bg-[#9a5fe3]"
                 onClick={handleSell}
-                isDisabled={!sellToken || isOrderPending}
+                isDisabled={!sellToken || isOrderPendingFinal}
               >
-                {isOrderPending ? (
+                {isOrderPendingFinal ? (
                   <>
                     <LoadingSpinner />
                     {"Processing..."}
