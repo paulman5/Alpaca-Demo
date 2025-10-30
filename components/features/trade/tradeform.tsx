@@ -52,6 +52,9 @@ type TradeFormProps = {
   netReceiveUsdc: string;
   priceChangePercent: number;
   priceChange: number;
+  credentialPda?: PublicKey;
+  schemaPda?: PublicKey;
+  targetUser?: PublicKey;
 };
 
 export default function TradeForm({
@@ -80,12 +83,15 @@ export default function TradeForm({
   netReceiveUsdc,
   priceChangePercent,
   priceChange,
+  credentialPda,
+  schemaPda,
+  targetUser
 }: TradeFormProps) {
   const { publicKey } = useWallet();
-  // Dummy credential/schema PDAs (replace for real per-token/pool if needed)
-  const credentialPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
-  const schemaPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
-  const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda, schemaPda, targetUser: publicKey });
+  const credPda = credentialPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const schPda = schemaPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const user = targetUser ?? publicKey;
+  const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user });
 
   // Determine if buy button should be disabled
   const isBuyDisabled = !buyUsdc || isOrderPending || !isKycVerified || kycLoading;

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { clientCacheHelpers } from "@/lib/cache/client-cache";
 import TradeTokenSelector from "@/components/features/trade/tradetokenselector";
 import TradeChart from "@/components/features/trade/tradechart";
@@ -10,6 +10,15 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useTokenBalance } from "@/hooks/view/useBalance";
 import { PublicKey } from "@solana/web3.js";
 import { toPk } from "@/helpers/publicKeyConverter";
+
+const MINTS: Record<string, PublicKey | null> = {
+  LQD: toPk("GnYQJqqkiN5CTJhCT8Ko3Qd1JQYNj5n91gLJinamt5Xg"),
+  TSLA: null,
+  AAPL: null,
+  GOLD: null,
+};
+
+const USDC_MINT = null; // set to a valid PublicKey string when available
 
 const TOKENS = [
   { label: "LQD", value: "LQD" },
@@ -50,18 +59,11 @@ const TradePage = () => {
   // Resolve token mints (hardcoded) and fetch balances via hook
 
 
-  const MINTS: Record<string, PublicKey | null> = {
-    LQD: toPk("GnYQJqqkiN5CTJhCT8Ko3Qd1JQYNj5n91gLJinamt5Xg"),
-    TSLA: null,
-    AAPL: null,
-    GOLD: null,
-  };
-  const USDC_MINT = null; // set to a valid PublicKey string when available
-
-  const ownerPk = publicKey ?? null;
-  const tokenMint = MINTS[selectedToken] ?? null;
+  const ownerPk = useMemo(() => publicKey ?? null, [publicKey]);
+  const tokenMint = useMemo(() => MINTS[selectedToken] ?? null, [selectedToken]);
+  const usdcMint = useMemo(() => USDC_MINT, []);
   const tokenBal = useTokenBalance(tokenMint, ownerPk);
-  const usdcBal = useTokenBalance(USDC_MINT, ownerPk);
+  const usdcBal = useTokenBalance(usdcMint, ownerPk);
 
   // Derived balances for UI
   const tokenBalance = tokenBal.amountUi ? parseFloat(tokenBal.amountUi) : 0;
@@ -72,14 +74,7 @@ const TradePage = () => {
   const refetchTokenBalance = tokenBal.refetch;
   const refetchUSDCBalance = usdcBal.refetch;
 
-  // Fire a single token balance fetch when keys become available
-  const didFetchTokenBalance = useRef(false);
-  useEffect(() => {
-    if (didFetchTokenBalance.current) return;
-    if (!tokenMint || !ownerPk) return;
-    didFetchTokenBalance.current = true;
-    void refetchTokenBalance();
-  }, [tokenMint, ownerPk, refetchTokenBalance]);
+  // Removed useEffect that auto-triggered balance refetch
 
   // Disable on-chain order flow for now; keep form interactions local
   const tokenDecimals = 9;

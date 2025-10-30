@@ -10,17 +10,23 @@ import { toast } from "sonner";
 import useKycStatus from "@/hooks/view/useVerificationStatus";
 import { PublicKey } from "@solana/web3.js";
 
-export default function KYCFlow() {
-  const { publicKey, connected } = useWallet();
+interface KYCFlowProps {
+  credentialPda?: PublicKey;
+  schemaPda?: PublicKey;
+  targetUser?: PublicKey;
+}
 
-  // Dummy credential/schema PDAs (replace values as needed)
-  const credentialPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
-  const schemaPda = new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
-  // Use KYC hook
+export default function KYCFlow({ credentialPda, schemaPda, targetUser }: KYCFlowProps) {
+  const { publicKey, connected } = useWallet();
+  // Default to wallet publicKey if not provided
+  const credPda = credentialPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37"); // can change to undefined if you want required
+  const schPda = schemaPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const user = targetUser ?? publicKey;
+
   const { isKycVerified, loading, error, refetch } = useKycStatus({
-    credentialPda,
-    schemaPda,
-    targetUser: publicKey,
+    credentialPda: credPda,
+    schemaPda: schPda,
+    targetUser: user,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPending, setIsPending] = useState(false);

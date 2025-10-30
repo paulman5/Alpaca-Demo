@@ -30,24 +30,24 @@ export function useKycStatus({
   credentialPda,
   schemaPda,
   targetUser,
+  pollInterval = 0,
 }: {
   credentialPda: PublicKey;
   schemaPda: PublicKey;
   targetUser?: PublicKey | null;
+  pollInterval?: number; // in ms, optional. Default: 0 (no polling)
 }) {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
   const [isKycVerified, setIsKycVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const user = targetUser ?? publicKey ?? null;
 
   const fetchKyc = useCallback(async () => {
     setLoading(true);
     setError(null);
     setIsKycVerified(null);
-
     try {
       if (!user) throw new Error("No wallet connected");
       // Derive the attestation PDA
@@ -62,13 +62,11 @@ export function useKycStatus({
         setIsKycVerified(false);
         return;
       }
-      // Check if owned by the SAS program
       if (!pdaInfo.owner.equals(SAS_PROGRAM_ID)) {
         setIsKycVerified(false);
         setError("Attestation exists but is not owned by SAS program");
         return;
       }
-      // Optionally, you could further check for valid data fields here
       setIsKycVerified(true);
     } catch (err: any) {
       setError(err?.message || "Failed to check KYC");
@@ -78,9 +76,22 @@ export function useKycStatus({
     }
   }, [connection, credentialPda, schemaPda, user]);
 
+  // Polling effect
   useEffect(() => {
-    if (user) fetchKyc();
-  }, [fetchKyc, user]);
+    if (!user || pollInterval <= 0) return;
+    let isMounted = true;
+    let intervalId: NodeJS.Timeout | undefined;
+    const poll = async () => {
+      if (!isMounted) return;
+      await fetchKyc();
+    };
+    poll(); // initial fetch
+    intervalId = setInterval(poll, pollInterval);
+    return () => {
+      isMounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [fetchKyc, user, pollInterval]);
 
   return {
     isKycVerified,
