@@ -66,16 +66,33 @@ export function useSellAssetManual(): UseSellManualResult {
       // User USDC ATA (destination in sell, if program transfers from treasury → user)
       const userUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, publicKey);
 
-      // Treasury ATA owned by CONFIG_PDA (source in sell if treasury pays USDC)
-      const treasuryUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, CONFIG_PDA, true);
-      const ordersUsdcAccount = args?.ordersUsdcAccountOverride ?? treasuryUsdcAta;
-
-      const attestationAccount = args?.attestationPdaOverride ?? DEFAULT_ATTESTATION_PDA;
-
+      // Derive orders authority PDA and use it as the treasury USDC ATA owner
       const [ordersAuthority] = PublicKey.findProgramAddressSync(
         [Buffer.from("orders_authority")],
         PROGRAM_ID
       );
+
+      const treasuryUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, ordersAuthority, true);
+      const ordersUsdcAccount = args?.ordersUsdcAccountOverride ?? treasuryUsdcAta;
+
+      // Derive attestation PDA for the connected user; fallback only if lib unavailable
+      let attestationAccount: PublicKey;
+      if (args?.attestationPdaOverride) {
+        attestationAccount = args.attestationPdaOverride;
+      } else {
+        try {
+          const sas = await import("sas-lib");
+          const nonce = publicKey.toBase58();
+          const [attPda] = await (sas as any).deriveAttestationPda({
+            credential: CREDENTIAL_PDA.toBase58(),
+            schema: SCHEMA_PDA.toBase58(),
+            nonce,
+          });
+          attestationAccount = new PublicKey(attPda);
+        } catch {
+          attestationAccount = DEFAULT_ATTESTATION_PDA;
+        }
+      }
 
       // Encode args: (ticker: string, asset_amount: u64, manual_price: u64)
       const layout = borsh.struct([
@@ -111,8 +128,7 @@ export function useSellAssetManual(): UseSellManualResult {
 
       const ix = new TransactionInstruction({ programId: PROGRAM_ID, keys, data });
 
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
-      const tx = new Transaction({ feePayer: publicKey, recentBlockhash: blockhash });
+      const tx = new Transaction();
 
       // Ensure ATAs exist (idempotent)
       tx.add(
@@ -122,7 +138,7 @@ export function useSellAssetManual(): UseSellManualResult {
       );
       tx.add(
         createAssociatedTokenAccountIdempotentInstruction(
-          publicKey, treasuryUsdcAta, CONFIG_PDA, USDC_MINT, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+          publicKey, treasuryUsdcAta, ordersAuthority, USDC_MINT, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
         )
       );
 
@@ -136,6 +152,7 @@ export function useSellAssetManual(): UseSellManualResult {
         skipPreflight: false,
         preflightCommitment: "confirmed",
       });
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
       await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed");
       return sig;
     } catch (e: any) {
