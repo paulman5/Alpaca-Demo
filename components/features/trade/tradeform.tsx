@@ -88,10 +88,10 @@ function TradeForm({
   targetUser
 }: TradeFormProps) {
   const { publicKey } = useWallet();
-  const credPda = credentialPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
-  const schPda = schemaPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const credPda = credentialPda ?? new PublicKey("B4PtmaDJdFQBxpvwdLB3TDXuLd69wnqXexM2uBqqfMXL");
+  const schPda = schemaPda ?? new PublicKey("GvJbCuyqzTiACuYwFzqZt7cEPXSeD5Nq3GeWBobFfU8x");
   const user = targetUser ?? publicKey;
-  const { isKycVerified, loading: kycLoading, refetch: refetchKyc } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user });
+  const { isKycVerified, loading: kycLoading } = useKycStatus({ credentialPda: credPda, schemaPda: schPda, targetUser: user, autoFetch: true });
 
   // Determine if buy button should be disabled
   const isBuyDisabled = !buyUsdc || isOrderPending || isKycVerified !== true || kycLoading;
@@ -347,11 +347,6 @@ function TradeForm({
                     You need to complete verification before you can buy tokens.
                     Please complete the verification process in your profile.
                   </p>
-                  <div className="mt-3">
-                    <Button variant="outline" className="rounded-none" onClick={() => refetchKyc()}>
-                      Refresh Verification
-                    </Button>
-                  </div>
                 </div>
               )}
 
