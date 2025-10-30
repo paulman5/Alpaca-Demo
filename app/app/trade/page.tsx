@@ -18,7 +18,7 @@ const MINTS: Record<string, PublicKey | null> = {
   GOLD: null,
 };
 
-const USDC_MINT = null; // set to a valid PublicKey string when available
+const USDC_MINT = toPk("Bd8tBm8WNPhmW5FjvAkisw4C9G3NEE7NowEW6VUuMHjW"); // USDC mint (6 decimals)
 
 const TOKENS = [
   { label: "LQD", value: "LQD" },
