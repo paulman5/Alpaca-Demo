@@ -19,8 +19,8 @@ interface KYCFlowProps {
 export default function KYCFlow({ credentialPda, schemaPda, targetUser }: KYCFlowProps) {
   const { publicKey, connected } = useWallet();
   // Default to wallet publicKey if not provided
-  const credPda = credentialPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37"); // can change to undefined if you want required
-  const schPda = schemaPda ?? new PublicKey("Fg6PaFpoGXkYsidMpWxTWqyb9q5Q8b5RDcEcHMvGxT37");
+  const credPda = credentialPda ?? new PublicKey("B4PtmaDJdFQBxpvwdLB3TDXuLd69wnqXexM2uBqqfMXL"); // can change to undefined if you want required
+  const schPda = schemaPda ?? new PublicKey("GvJbCuyqzTiACuYwFzqZt7cEPXSeD5Nq3GeWBobFfU8x");
   const user = targetUser ?? publicKey;
 
   const { isKycVerified, loading, error, refetch } = useKycStatus({

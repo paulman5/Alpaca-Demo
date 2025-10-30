@@ -26,37 +26,29 @@ export function deriveAttestationPda({
   );
 }
 
-export function useKycStatus({
-  credentialPda,
-  schemaPda,
-  targetUser,
-  pollInterval = 0,
-}: {
-  credentialPda: PublicKey;
-  schemaPda: PublicKey;
-  targetUser?: PublicKey | null;
-  pollInterval?: number; // in ms, optional. Default: 0 (no polling)
-}) {
+export function useKycStatus() {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
   const [isKycVerified, setIsKycVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const user = targetUser ?? publicKey ?? null;
+
+  // Hardcode the actual addresses for debug/testing
+  const credentialPda = new PublicKey("B4PtmaDJdFQBxpvwdLB3TDXuLd69wnqXexM2uBqqfMXL");
+  const schemaPda = new PublicKey("GvJbCuyqzTiACuYwFzqZt7cEPXSeD5Nq3GeWBobFfU8x");
+  const user = new PublicKey("DoBKyQ8wJF5veKrNcxS5BeSCW4bpAwHqDQpbaSpRTdvc");
 
   const fetchKyc = useCallback(async () => {
     setLoading(true);
     setError(null);
     setIsKycVerified(null);
     try {
-      if (!user) throw new Error("No wallet connected");
-      // Derive the attestation PDA
-      const [pda] = deriveAttestationPda({
-        credential: credentialPda,
-        schema: schemaPda,
-        user: user,
-      });
-      // Fetch the PDA account
+      // Derive attestation PDA (ensure PROGRAM_ID is correct for your deployment)
+      const SAS_PROGRAM_ID = new PublicKey("22zoJMtdu4tQc2PzL74ZUT7FrwgB1Udec8DdW4yw4BdG");
+      const [pda] = PublicKey.findProgramAddressSync(
+        [credentialPda.toBuffer(), schemaPda.toBuffer(), user.toBuffer()],
+        SAS_PROGRAM_ID
+      );
       const pdaInfo = await connection.getAccountInfo(pda, "confirmed");
       if (!pdaInfo) {
         setIsKycVerified(false);
@@ -74,24 +66,11 @@ export function useKycStatus({
     } finally {
       setLoading(false);
     }
-  }, [connection, credentialPda, schemaPda, user]);
+  }, [connection]);
 
-  // Polling effect
   useEffect(() => {
-    if (!user || pollInterval <= 0) return;
-    let isMounted = true;
-    let intervalId: NodeJS.Timeout | undefined;
-    const poll = async () => {
-      if (!isMounted) return;
-      await fetchKyc();
-    };
-    poll(); // initial fetch
-    intervalId = setInterval(poll, pollInterval);
-    return () => {
-      isMounted = false;
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [fetchKyc, user, pollInterval]);
+    fetchKyc();
+  }, [fetchKyc]);
 
   return {
     isKycVerified,
