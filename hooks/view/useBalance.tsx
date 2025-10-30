@@ -16,7 +16,7 @@ export function useTokenBalance(mint: PublicKey | null, owner: PublicKey | null)
   console.log('useTokenBalance rendered', { mint, owner });
   const { connection } = useConnection();
 
-  // Use provided mint and owner directly (no hardcoding)
+  // Use provided mint and owner
   const effectiveMint = mint;
   const effectiveOwner = owner;
 

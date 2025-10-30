@@ -12,7 +12,7 @@ import { PublicKey } from "@solana/web3.js";
 import { toPk } from "@/helpers/publicKeyConverter";
 
 const MINTS: Record<string, PublicKey | null> = {
-  LQD: toPk("GnYQJqqkiN5CTJhCT8Ko3Qd1JQYNj5n91gLJinamt5Xg"),
+  LQD: toPk("ChcZdMV4jwXcvZQUWHEjMqMJBu3v62up2cJqY8CUkSCj"),
   TSLA: null,
   AAPL: null,
   GOLD: null,
