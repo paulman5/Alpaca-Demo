@@ -4,11 +4,11 @@ import PortfolioHeader from "@/components/features/portfolio/portfolioheader";
 import PortfolioSummaryCards from "@/components/features/portfolio/portfoliosummarycards";
 import PortfolioHoldings from "@/components/features/portfolio/portfolioholdings";
 import PortfolioPerformance from "@/components/features/portfolio/portfolioperformance";
-// import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
+import PortfolioActivity from "@/components/features/portfolio/portfolioactivity";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useMarketData } from "@/hooks/api/useMarketData";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
-// import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
+import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import { useEffect, useMemo, useState } from "react";
@@ -86,6 +86,14 @@ function PortfolioPage() {
 
   const { returns, isLoading: returnsLoading } = useReturns("LQD");
   const { username } = useCurrentUser();
+  
+  // Fetch recent activity (buy/sell orders)
+  const {
+    activities,
+    isLoading: activitiesLoading,
+    hasMore,
+    loadMore,
+  } = useRecentActivity(userAddress);
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
     return num.toLocaleString(undefined, {
@@ -250,14 +258,16 @@ function PortfolioPage() {
                 />
               </div>
             </TabsContent>
-            {/* <TabsContent value="activity" className="space-y-6">
-              <PortfolioActivity
-                activities={activities}
-                activitiesLoading={activitiesLoading}
-                hasMore={hasMore}
-                loadMore={loadMore}
-              />
-            </TabsContent> */}
+            <TabsContent value="activity" className="space-y-6">
+              <div className="border border-[#004040]/15 bg-white rounded-none shadow-sm">
+                <PortfolioActivity
+                  activities={activities}
+                  activitiesLoading={activitiesLoading}
+                  hasMore={hasMore}
+                  loadMore={loadMore}
+                />
+              </div>
+            </TabsContent>
           </Tabs>
         </>
       )}
