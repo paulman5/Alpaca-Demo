@@ -170,7 +170,7 @@ function TradeForm({
               {tradeType === "buy" ? (
                 <ArrowDownCircle className="text-[#004040] w-6 h-6" />
               ) : (
-                <ArrowUpCircle className="text-[#a7c6ed] w-6 h-6" />
+                <ArrowUpCircle className="text-[#004040] w-6 h-6" />
               )}
               <div>
                 <CardTitle className="text-xl">
@@ -191,7 +191,7 @@ function TradeForm({
               </div>
               <div
                 className={`font-bold text-base ${
-                  tradeType === "buy" ? "text-[#004040]" : "text-[#a7c6ed]"
+                  tradeType === "buy" ? "text-[#004040]" : "text-[#004040]"
                 }`}
               >
                 {tradeType === "buy"
@@ -238,7 +238,7 @@ function TradeForm({
               onClick={() => setTradeType("sell")}
               className={`flex-1 transition-all duration-200 ${
                 tradeType === "sell"
-                  ? "bg-[#a7c6ed] hover:bg-[#9a5fe3] text-white shadow-lg transform scale-[0.98] ring-2 ring-[#a7c6ed]/30 shadow-[#a7c6ed]/25"
+                  ? "bg-[#004040] hover:bg-[#004040] text-white shadow-lg transform scale-[0.98] ring-2 ring-[#004040]/30"
                   : "text-slate-600 hover:scale-[1.02]"
               }`}
             >
@@ -447,15 +447,15 @@ function TradeForm({
                   value={sellToken}
                   onChange={(e) => setSellToken(e.target.value)}
                   placeholder={`Enter S${selectedToken} amount`}
-                  className="border border-[#a7c6ed]/40 focus:border-[#a7c6ed] rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
+                  className="border border-[#004040]/30 focus:border-[#004040] rounded-none px-4 py-3 w-full bg-white shadow-sm focus:outline-none transition text-lg"
                 />
               </div>
 
               {sellToken && latestPrice && latestPrice > 0 && (
                 <div className="mb-4 space-y-3">
                   {/* Estimation Summary */}
-                  <div className="p-4 rounded-none bg-[#f5eaff] border border-[#a7c6ed]/30">
-                    <div className="text-sm text-[#6c2ab5] mb-3 font-medium">
+                  <div className="p-4 rounded-none bg-[#f5faf9] border border-[#004040]/15">
+                    <div className="text-sm text-[#004040] mb-3 font-medium">
                       Transaction Summary
                     </div>
                     <div className="space-y-2">
@@ -483,7 +483,7 @@ function TradeForm({
                         <span className="text-slate-600">
                           You receive (net):
                         </span>
-                        <span className="font-bold text-[#6c2ab5]">
+                        <span className="font-bold text-[#004040]">
                           {netReceiveUsdc} USDC
                         </span>
                       </div>
@@ -521,7 +521,7 @@ function TradeForm({
               )}
 
               <Button
-                className="w-full mt-4 font-semibold text-lg py-3 bg-[#a7c6ed] hover:bg-[#9a5fe3]"
+                className="w-full mt-4 font-semibold text-lg py-3 bg-[#004040] hover:bg-[#004040]"
                 onClick={handleSellClick}
                 isDisabled={!sellToken || isSelling}
               >
