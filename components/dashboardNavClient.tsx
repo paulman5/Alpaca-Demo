@@ -24,50 +24,32 @@ import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useConnection } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export function DashboardSidebarNavClient() {
   const { open } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
-  const { connected, publicKey, disconnect } = useWallet();
-  const { connection } = useConnection();
-  const { setVisible } = useWalletModal();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { openConnectModal } = useConnectModal();
   const [balanceSol, setBalanceSol] = useState<string | null>(null);
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
 
   const shortAddress = useMemo(() => {
-    const base58 = publicKey?.toBase58();
-    return base58 ? `${base58.slice(0, 6)}...${base58.slice(-4)}` : null;
-  }, [publicKey]);
+    return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null;
+  }, [address]);
 
+  const { data: bal, isLoading: balLoading } = useBalance({ address, query: { enabled: Boolean(address) } });
   useEffect(() => {
-    let cancelled = false;
-    async function loadBalance() {
-      if (!publicKey) {
-        setBalanceSol(null);
-        return;
-      }
-      setIsBalanceLoading(true);
-      try {
-        const lamports = await connection.getBalance(publicKey, { commitment: "confirmed" });
-        if (!cancelled) {
-          const sol = lamports / 1_000_000_000;
-          setBalanceSol(sol.toFixed(3) + " SOL");
-        }
-      } catch {
-        if (!cancelled) setBalanceSol(null);
-      } finally {
-        if (!cancelled) setIsBalanceLoading(false);
-      }
+    setIsBalanceLoading(balLoading);
+    if (!balLoading && bal) {
+      setBalanceSol(`${Number(bal.value) / 10 ** bal.decimals} ${bal.symbol}`);
+    } else if (!address) {
+      setBalanceSol(null);
     }
-    void loadBalance();
-    return () => {
-      cancelled = true;
-    };
-  }, [publicKey, connection]);
+  }, [bal, balLoading, address]);
 
   const isActive = (path: string) => {
     if (path === "/app") {
@@ -131,15 +113,8 @@ export function DashboardSidebarNavClient() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={isActive("/app/proof-of-reserve")}
-              className="flex items-center gap-3 opacity-75 cursor-not-allowed"
-            >
-              <Link
-                href="/app"
-                className="flex items-center gap-3"
-              >
+            <SidebarMenuButton asChild isActive={isActive("/app/proof-of-reserve")}>
+              <Link href="/app/proof-of-reserve" className="flex items-center gap-3">
                 <TrendingUp className="h-4 w-4" />
                 <span>Proof of Reserve</span>
               </Link>
@@ -169,10 +144,10 @@ export function DashboardSidebarNavClient() {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t">
         <div className="space-y-3">
-          {/* Solana connect button or wallet pill */}
-          {!connected ? (
+          {/* EVM connect button or wallet pill */}
+          {!isConnected ? (
             <Button
-              onClick={() => setVisible(true)}
+              onClick={() => openConnectModal && openConnectModal()}
               className="mt-3 bg-black text-white text-sm rounded-none px-4 py-2 border border-gray-600/50 hover:bg-black/90 focus:outline-none w-full justify-center"
             >
               Connect Wallet
