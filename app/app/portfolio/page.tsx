@@ -12,27 +12,24 @@ import { useRecentActivity } from "@/hooks/view/onChain/useRecentActivity";
 import { useReturns } from "@/hooks/api/useReturns";
 import { LoadingSpinner } from "@/components/loadingSpinner";
 import { useEffect, useMemo, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
-import { useBalanceToken } from "@/hooks/view/useBalanceToken";
-import { useBalanceUSDC } from "@/hooks/view/useBalanceUSDC";
+import { useAccount } from "wagmi";
+import { useUSDCTokenBalance } from "@/hooks/view/onChain/useUSDCTokenBalance";
+import { useTokenBalance } from "@/hooks/view/onChain/useTokenBalance";
+import { useContractAddress } from "@/lib/addresses";
 
 function PortfolioPage() {
-  const { publicKey } = useWallet();
-  const userAddress = publicKey?.toBase58() || null;
-  const ownerPk = useMemo(() => publicKey ?? null, [publicKey]);
+  const { address } = useAccount();
+  const userAddress = address ?? null;
 
-  // sLQD mint (Token-2022)
-  const LQD_MINT = useMemo(() => new PublicKey("ChcZdMV4jwXcvZQUWHEjMqMJBu3v62up2cJqY8CUkSCj"), []);
-  // USDC mint (classic)
-  const USDC_MINT = useMemo(() => new PublicKey("Bd8tBm8WNPhmW5FjvAkisw4C9G3NEE7NowEW6VUuMHjW"), []);
+  // EVM token addresses
+  const lqdToken = useContractAddress("SpoutLQDtoken") as `0x${string}`;
 
-  // Balances
-  const slqdBalHook = useBalanceToken(LQD_MINT, ownerPk);
-  const usdcBalHook = useBalanceUSDC(USDC_MINT, ownerPk);
+  // Balances (EVM)
+  const usdcBalHook = useUSDCTokenBalance();
+  const slqdBalHook = useTokenBalance(lqdToken, (address ?? null) as any);
   const lqdBal = useMemo(() => Number(slqdBalHook.amountUi ?? 0) || 0, [slqdBalHook.amountUi]);
   const usdcBal = useMemo(() => Number(usdcBalHook.amountUi ?? 0) || 0, [usdcBalHook.amountUi]);
-  const balanceLoading = slqdBalHook.isLoading || usdcBalHook.isLoading;
+  const balanceLoading = Boolean(slqdBalHook.isLoading || usdcBalHook.isLoading);
 
   // Fetch per-asset market data
   const {
@@ -93,7 +90,7 @@ function PortfolioPage() {
     isLoading: activitiesLoading,
     hasMore,
     loadMore,
-  } = useRecentActivity(userAddress);
+  } = useRecentActivity();
   // Format number to 3 decimals, matching holdings value
   const formatNumber = (num: number) => {
     return num.toLocaleString(undefined, {
