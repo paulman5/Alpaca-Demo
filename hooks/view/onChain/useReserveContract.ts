@@ -1,7 +1,7 @@
 "use client";
 
 import { useReadContract, useWriteContract } from "wagmi";
-import reserveABI from "@/app-interface-demo/abi/proof-of-reserve.json";
+import reserveABI from "@/abi/proof-of-reserve.json";
 
 export function useReserveContract(reserveAddress: `0x${string}`) {
   const {

@@ -1,5 +1,5 @@
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import ordersABI from "@/app-interface-demo/abi/ordersBlocksense.json";
+import ordersABI from "@/abi/ordersBlocksense.json";
 
 export function useOrdersContract(ordersAddress: `0x${string}`) {
   const { address } = useAccount();

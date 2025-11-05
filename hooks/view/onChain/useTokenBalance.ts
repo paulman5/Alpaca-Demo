@@ -1,5 +1,5 @@
 import { useReadContract } from "wagmi";
-import erc20ABI from "@/app-interface-demo/abi/erc20.json";
+import erc20ABI from "@/abi/erc20.json";
 
 export function useTokenBalance(token: `0x${string}` | null, owner: `0x${string}` | null) {
   const canRead = Boolean(token && owner);

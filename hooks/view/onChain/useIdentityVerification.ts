@@ -1,7 +1,7 @@
 import { useReadContract } from "wagmi";
 import { useContractAddress } from "@/lib/addresses";
-import tokenABI from "@/app-interface-demo/abi/token.json";
-import identityRegistryABI from "@/app-interface-demo/abi/identityregistry.json";
+import tokenABI from "@/abi/token.json";
+import identityRegistryABI from "@/abi/identityregistry.json";
 
 export function useIdentityVerification(userAddress: string | undefined) {
   const rwaTokenAddress = useContractAddress("SpoutLQDtoken");
